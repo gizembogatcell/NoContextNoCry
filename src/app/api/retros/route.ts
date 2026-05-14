@@ -3,8 +3,16 @@ import type { NextRequest } from "next/server";
 import { requireUser, UnauthorizedError } from "@/lib/api/auth";
 import { ok, fail, failFromUnknown } from "@/lib/api/response";
 import { createRetroSchema } from "@/lib/validations/retro.schema";
-import { createRetro, listRetrosByUser } from "@/services/retro.service";
-import { listActionsByRetro } from "@/services/action.service";
+import {
+  createRetro,
+  listRetrosByUser,
+  getPreviousRetro,
+  getRetroRecipients,
+} from "@/services/retro.service";
+import {
+  getActionStatsByRetro,
+  markFailedAsCarryOver,
+} from "@/services/action.service";
 import { generatePreRetroSummary } from "@/services/mail-content";
 import { renderPreRetroSummaryMail } from "@/templates/pre-retro-summary.html";
 import { sendMail } from "@/services/mailer";
@@ -21,9 +29,7 @@ export async function POST(request: NextRequest) {
 
     const retro = await createRetro(decoded.uid, parsed.data);
 
-    if (parsed.data.sendSummaryMail) {
-      fireAndForgetSummaryMail(decoded.uid, retro.id).catch(() => {});
-    }
+    void markCarryOverAndSendMails(decoded.uid, retro.id, parsed.data.sendSummaryMail);
 
     return ok(retro, { status: 201 });
   } catch (err) {
@@ -34,51 +40,61 @@ export async function POST(request: NextRequest) {
   }
 }
 
-async function fireAndForgetSummaryMail(
-  userId: string,
+async function markCarryOverAndSendMails(
+  uid: string,
   newRetroId: string,
+  shouldSendMail: boolean,
 ): Promise<void> {
-  const retros = await listRetrosByUser(userId);
-  const previousRetro = retros.find((r) => r.id !== newRetroId);
-  if (!previousRetro) return;
+  try {
+    const previousRetro = await getPreviousRetro(uid, newRetroId);
+    if (!previousRetro) return;
 
-  const actions = await listActionsByRetro(previousRetro.id);
-  if (actions.length === 0) return;
+    await markFailedAsCarryOver(previousRetro.id);
 
-  const emails = new Set<string>();
-  for (const a of actions) {
-    if (a.assigneeEmail) emails.add(a.assigneeEmail);
+    if (!shouldSendMail) return;
+
+    const stats = await getActionStatsByRetro(previousRetro.id);
+    const totalActions =
+      stats.completedCount + stats.openCount + stats.failedCount;
+    if (totalActions === 0) return;
+
+    const recipients = await getRetroRecipients(previousRetro.id);
+    if (recipients.length === 0) return;
+
+    const aiContent = await generatePreRetroSummary({
+      completedCount: stats.completedCount,
+      openCount: stats.openCount,
+      failedCount: stats.failedCount,
+      openActions: stats.openActions.map((a) => ({
+        title: a.title,
+        assigneeName: a.assigneeName,
+      })),
+    });
+
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+    const retroUrl = `${appUrl}/retros/${newRetroId}`;
+
+    const html = renderPreRetroSummaryMail({
+      subject: aiContent.subject,
+      body: aiContent.body,
+      completedCount: stats.completedCount,
+      openCount: stats.openCount,
+      failedCount: stats.failedCount,
+      openActions: stats.openActions.map((a) => ({
+        title: a.title,
+        assigneeName: a.assigneeName,
+      })),
+      retroUrl,
+    });
+
+    await Promise.all(
+      recipients.map((to) =>
+        sendMail({ to, subject: aiContent.subject, html }),
+      ),
+    );
+  } catch (err) {
+    console.error("[retros/route] Failed to process carry-over / summary mails:", err);
   }
-  if (emails.size === 0) return;
-
-  const actionRows = actions.map((a) => ({
-    title: a.title,
-    status: a.status,
-    assigneeName: a.assigneeName,
-    deadline: a.deadline,
-  }));
-
-  const content = await generatePreRetroSummary({ actions: actionRows });
-
-  const done = actions.filter((a) => a.status === "done").length;
-  const open = actions.filter((a) => a.status !== "done" && a.status !== "failed").length;
-  const failed = actions.filter((a) => a.status === "failed").length;
-
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
-  const retroUrl = `${appUrl}/retros/${newRetroId}`;
-
-  const html = renderPreRetroSummaryMail({
-    subject: content.subject,
-    body: content.body,
-    actions: actionRows,
-    stats: { done, open, failed },
-    retroUrl,
-  });
-
-  const sendPromises = [...emails].map((to) =>
-    sendMail({ to, subject: content.subject, html }),
-  );
-  await Promise.allSettled(sendPromises);
 }
 
 export async function GET(request: NextRequest) {

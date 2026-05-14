@@ -1,41 +1,65 @@
 import { ok, failFromUnknown } from "@/lib/api/response";
-import { findActionsDueBefore } from "@/services/action.service";
+import { getActionsDueToday, updateActionMailSent } from "@/services/action.service";
 import { sendMail } from "@/services/mailer";
 import { renderDeadlineCheckMail } from "@/templates/deadline-check.html";
 
+const APP_URL =
+  process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+
 export async function GET() {
   try {
-    const now = new Date();
-    const actions = await findActionsDueBefore(now);
+    const dueActions = await getActionsDueToday();
 
-    if (actions.length === 0) {
-      return ok({ sent: 0, message: "No actions due" });
+    if (dueActions.length === 0) {
+      return ok({ sent: 0, message: "No actions due today" });
     }
 
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
-    let sent = 0;
+    const results: { actionId: string; success: boolean; error?: string }[] =
+      [];
 
-    for (const action of actions) {
-      if (!action.magicToken || action.magicTokenUsed) continue;
+    for (const action of dueActions) {
+      if (!action.magicToken) {
+        results.push({
+          actionId: action.id,
+          success: false,
+          error: "No magic token",
+        });
+        continue;
+      }
 
       const html = renderDeadlineCheckMail({
         actionTitle: action.title,
         assigneeName: action.assigneeName,
         deadline: action.deadline,
         magicToken: action.magicToken,
-        appUrl,
+        appUrl: APP_URL,
       });
 
-      const result = await sendMail({
+      const mailResult = await sendMail({
         to: action.assigneeEmail,
-        subject: `⏰ Deadline hatırlatma: ${action.title}`,
+        subject: `📋 Aksiyon Durumu: ${action.title}`,
         html,
       });
 
-      if (result.success) sent++;
+      if (mailResult.success) {
+        await updateActionMailSent(action.id);
+      }
+
+      results.push({
+        actionId: action.id,
+        success: mailResult.success,
+        error: mailResult.error,
+      });
     }
 
-    return ok({ sent, total: actions.length });
+    const sent = results.filter((r) => r.success).length;
+    const failed = results.filter((r) => !r.success).length;
+
+    if (failed > 0) {
+      return ok({ sent, failed, results }, { status: 207 });
+    }
+
+    return ok({ sent, results });
   } catch (err) {
     return failFromUnknown(err);
   }

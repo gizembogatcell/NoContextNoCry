@@ -5,7 +5,6 @@ import type { Collection } from "mongodb";
 import { getDb } from "@/lib/mongodb/client";
 import type { Action, ActionStatus } from "@/types/action";
 import type { CreateActionInput } from "@/lib/validations/action.schema";
-import { listRetrosByUser } from "@/services/retro.service";
 
 // ── MongoDB document type ────────────────────────────────────────────
 
@@ -121,6 +120,37 @@ export async function updateActionMailSent(actionId: string): Promise<void> {
   );
 }
 
+export type ActionStats = {
+  completedCount: number;
+  openCount: number;
+  failedCount: number;
+  openActions: Action[];
+};
+
+export async function getActionStatsByRetro(
+  retroId: string,
+): Promise<ActionStats> {
+  const actions = await listActionsByRetro(retroId);
+
+  const openActions: Action[] = [];
+  let completedCount = 0;
+  let openCount = 0;
+  let failedCount = 0;
+
+  for (const action of actions) {
+    if (action.status === "done") {
+      completedCount++;
+    } else if (action.status === "failed") {
+      failedCount++;
+    } else {
+      openCount++;
+      openActions.push(action);
+    }
+  }
+
+  return { completedCount, openCount, failedCount, openActions };
+}
+
 export async function updateAction(
   actionId: string,
   fields: Partial<Pick<Action, "status" | "title" | "assigneeEmail" | "assigneeName" | "deadline">>,
@@ -135,16 +165,45 @@ export async function updateAction(
   return result ? docToAction(result) : null;
 }
 
+// ── Deadline cron helpers ─────────────────────────────────────────────
+
+export async function getActionsDueToday(): Promise<Action[]> {
+  const col = await actionsCollection();
+  const now = new Date();
+  const todayStart = new Date(
+    Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 0, 0, 0, 0),
+  );
+  const todayEnd = new Date(
+    Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 23, 59, 59, 999),
+  );
+
+  const docs = await col
+    .find({
+      status: "open",
+      mailSentAt: null,
+      deadline: {
+        $gte: todayStart.toISOString(),
+        $lte: todayEnd.toISOString(),
+      },
+    })
+    .toArray();
+
+  return docs.map(docToAction);
+}
+
 // ── Magic-link updates ────────────────────────────────────────────────
 
-export async function updateActionByToken(
+type MagicTokenUpdate = {
+  status: Action["status"];
+  magicTokenUsed: true;
+  failedReason?: string;
+  nextRetroCarryOver?: boolean;
+  deadline?: string | null;
+};
+
+export async function updateActionByMagicToken(
   token: string,
-  fields: Partial<
-    Pick<
-      Action,
-      "status" | "deadline" | "failedReason" | "nextRetroCarryOver" | "magicTokenUsed"
-    >
-  >,
+  fields: MagicTokenUpdate,
 ): Promise<Action | null> {
   const col = await actionsCollection();
   const now = new Date().toISOString();
@@ -156,70 +215,63 @@ export async function updateActionByToken(
   return result ? docToAction(result) : null;
 }
 
-// ── Deadline cron helpers ─────────────────────────────────────────────
+// ── Summary / carry-over ──────────────────────────────────────────────
 
-export async function findActionsDueBefore(date: Date): Promise<Action[]> {
-  const col = await actionsCollection();
-  const docs = await col
-    .find({
-      status: "open",
-      deadline: { $ne: null, $lte: date.toISOString() },
-    })
-    .toArray();
-  return docs.map(docToAction);
-}
-
-// ── Dashboard & carry-over ────────────────────────────────────────────
-
-type ActionSummary = {
+export async function getActionSummaryByRetro(retroId: string): Promise<{
   done: Action[];
   open: Action[];
   failed: Action[];
-  stats: { done: number; open: number; failed: number };
-};
-
-export async function getActionsSummaryByUser(
-  userId: string,
-): Promise<ActionSummary | null> {
-  const retros = await listRetrosByUser(userId);
-  if (retros.length === 0) return null;
-
-  const lastRetro = retros[0];
-  const actions = await listActionsByRetro(lastRetro.id);
-
-  const grouped: Record<string, Action[]> = { done: [], open: [], failed: [] };
-  for (const a of actions) {
-    if (a.status === "done") grouped.done.push(a);
-    else if (a.status === "failed") grouped.failed.push(a);
-    else grouped.open.push(a);
-  }
-
-  return {
-    done: grouped.done,
-    open: grouped.open,
-    failed: grouped.failed,
-    stats: {
-      done: grouped.done.length,
-      open: grouped.open.length,
-      failed: grouped.failed.length,
-    },
-  };
-}
-
-export async function getCarryOverActions(
-  userId: string,
-): Promise<Action[]> {
-  const retros = await listRetrosByUser(userId);
-  if (retros.length === 0) return [];
-
-  const lastRetro = retros[0];
+  inProgress: Action[];
+}> {
   const col = await actionsCollection();
   const docs = await col
-    .find({
-      retroId: lastRetro.id,
-      status: { $in: ["open", "failed"] as ActionStatus[] },
-    })
+    .find({ retroId })
+    .sort({ createdAt: -1 })
+    .toArray();
+
+  const grouped: { done: Action[]; open: Action[]; failed: Action[]; inProgress: Action[] } = {
+    done: [],
+    open: [],
+    failed: [],
+    inProgress: [],
+  };
+
+  for (const doc of docs) {
+    const action = docToAction(doc);
+    switch (action.status) {
+      case "done":
+        grouped.done.push(action);
+        break;
+      case "open":
+        grouped.open.push(action);
+        break;
+      case "failed":
+        grouped.failed.push(action);
+        break;
+      case "in_progress":
+        grouped.inProgress.push(action);
+        break;
+    }
+  }
+
+  return grouped;
+}
+
+export async function getCarryOverActions(retroId: string): Promise<Action[]> {
+  const col = await actionsCollection();
+  const docs = await col
+    .find({ retroId, status: { $in: ["open", "failed"] as ActionStatus[] } })
     .sort({ createdAt: -1 })
     .toArray();
   return docs.map(docToAction);
+}
+
+export async function markFailedAsCarryOver(retroId: string): Promise<number> {
+  const col = await actionsCollection();
+  const now = new Date().toISOString();
+  const result = await col.updateMany(
+    { retroId, status: "failed" as ActionStatus, nextRetroCarryOver: { $ne: true } },
+    { $set: { nextRetroCarryOver: true, updatedAt: now } },
+  );
+  return result.modifiedCount;
 }

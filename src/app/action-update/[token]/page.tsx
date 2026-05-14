@@ -39,7 +39,7 @@ type PageState =
 async function submitDone(token: string): Promise<PageState> {
   try {
     const res = await fetch(`/api/actions/magic/${token}`, {
-      method: "PATCH",
+      method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ action: "done" }),
     });
@@ -100,7 +100,7 @@ export default function ActionUpdatePage() {
           return;
         }
 
-        if (preselectedAction === "in_progress") {
+        if (preselectedAction === "in-progress" || preselectedAction === "in_progress") {
           if (!cancelled) setState({ kind: "form", formType: "in_progress", data });
           return;
         }
@@ -139,11 +139,11 @@ export default function ActionUpdatePage() {
     setSubmitting(true);
     try {
       const res = await fetch(`/api/actions/magic/${token}`, {
-        method: "PATCH",
+        method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          action: "in_progress",
-          ...(newDeadline ? { newDeadline } : {}),
+          action: "in-progress",
+          ...(newDeadline ? { deadline: newDeadline } : {}),
         }),
       });
 
@@ -174,11 +174,11 @@ export default function ActionUpdatePage() {
     setSubmitting(true);
     try {
       const res = await fetch(`/api/actions/magic/${token}`, {
-        method: "PATCH",
+        method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           action: "failed",
-          ...(failReason ? { reason: failReason } : {}),
+          ...(failReason ? { failedReason: failReason } : {}),
         }),
       });
 

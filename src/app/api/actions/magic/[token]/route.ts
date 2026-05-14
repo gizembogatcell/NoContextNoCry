@@ -1,11 +1,11 @@
 import type { NextRequest } from "next/server";
 
-import { ok, fail, failFromUnknown } from "@/lib/api/response";
-import { magicLinkActionSchema } from "@/lib/validations/action.schema";
+import { ok, fail, failFromZod, failFromUnknown } from "@/lib/api/response";
 import { isMagicTokenExpired } from "@/lib/magic-token";
+import { magicLinkActionSchema } from "@/lib/validations/action.schema";
 import {
   getActionByToken,
-  updateActionByToken,
+  updateActionByMagicToken,
 } from "@/services/action.service";
 
 export async function GET(
@@ -18,7 +18,7 @@ export async function GET(
 
     if (!action) {
       return fail(
-        { message: "Geçersiz link", code: "NOT_FOUND" },
+        { message: "Geçersiz bağlantı", code: "TOKEN_NOT_FOUND" },
         { status: 404 },
       );
     }
@@ -49,7 +49,7 @@ export async function GET(
   }
 }
 
-export async function PATCH(
+export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ token: string }> },
 ) {
@@ -59,7 +59,7 @@ export async function PATCH(
 
     if (!action) {
       return fail(
-        { message: "Geçersiz link", code: "NOT_FOUND" },
+        { message: "Geçersiz bağlantı", code: "TOKEN_NOT_FOUND" },
         { status: 404 },
       );
     }
@@ -80,39 +80,53 @@ export async function PATCH(
 
     const body: unknown = await request.json();
     const parsed = magicLinkActionSchema.safeParse(body);
-    if (!parsed.success) {
+    if (!parsed.success) return failFromZod(parsed.error);
+
+    const { action: actionType, deadline, failedReason } = parsed.data;
+
+    let updated;
+
+    switch (actionType) {
+      case "done":
+        updated = await updateActionByMagicToken(token, {
+          status: "done",
+          magicTokenUsed: true,
+        });
+        break;
+
+      case "in-progress":
+        updated = await updateActionByMagicToken(token, {
+          status: "open",
+          magicTokenUsed: true,
+          deadline: deadline ?? null,
+        });
+        break;
+
+      case "failed":
+        updated = await updateActionByMagicToken(token, {
+          status: "failed",
+          magicTokenUsed: true,
+          failedReason: failedReason ?? "Sebep belirtilmedi",
+          nextRetroCarryOver: true,
+        });
+        break;
+    }
+
+    if (!updated) {
       return fail(
-        { message: "Geçersiz istek", code: "VALIDATION_ERROR" },
-        { status: 400 },
+        { message: "Aksiyon güncellenemedi", code: "UPDATE_FAILED" },
+        { status: 500 },
       );
     }
 
-    const { action: actionType, newDeadline, reason } = parsed.data;
-
-    if (actionType === "done") {
-      const updated = await updateActionByToken(token, {
-        status: "done",
-        magicTokenUsed: true,
-      });
-      return ok(updated);
-    }
-
-    if (actionType === "in_progress") {
-      const updated = await updateActionByToken(token, {
-        status: "open",
-        deadline: newDeadline ?? null,
-      });
-      return ok(updated);
-    }
-
-    // actionType === "failed"
-    const updated = await updateActionByToken(token, {
-      status: "failed",
-      failedReason: reason ?? null,
-      nextRetroCarryOver: true,
-      magicTokenUsed: true,
+    return ok({
+      id: updated.id,
+      title: updated.title,
+      status: updated.status,
+      failedReason: updated.failedReason,
+      nextRetroCarryOver: updated.nextRetroCarryOver,
+      deadline: updated.deadline,
     });
-    return ok(updated);
   } catch (err) {
     return failFromUnknown(err);
   }
