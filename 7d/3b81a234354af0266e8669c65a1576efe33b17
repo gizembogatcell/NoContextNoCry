@@ -1,0 +1,30 @@
+src/app/antd-theme.ts
+  s_d72a0a3d7808f0::t_a27f3a96374502 1,12-318
+  s_d72a0a3d7808f0::t_67afd418053354 627,631-641
+src/app/providers.tsx
+  s_d72a0a3d7808f0::t_1724687221b6b1 5,7,14-16,18-21,23-27
+src/contexts/theme-context.tsx
+  s_d72a0a3d7808f0::t_aff9de74037f51 5
+  s_d72a0a3d7808f0::t_fefe895ef3aab5 1-4,6-21,27,30-60
+  s_d72a0a3d7808f0::t_f247f736e07af7 22-26,28-29
+src/components/layout/app-header.tsx
+  s_d72a0a3d7808f0::t_fd3cd68358391f 4-7,17-18,26-32,35-59,64-74,76
+src/app/layout.tsx
+  s_d72a0a3d7808f0::t_baf6a21aa05e73 2,8-25,27-28,37-40
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.8",
+  "base_commit_sha": "7d3b81a234354af0266e8669c65a1576efe33b17",
+  "prompts": {},
+  "sessions": {
+    "s_d72a0a3d7808f0": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "9b494900-7707-49c7-a263-3f45a92f283e",
+        "model": "claude-sonnet-4-6"
+      },
+      "human_author": "TCGBOGA <gizem.boga@turkcell.com.tr>"
+    }
+  }
+}
