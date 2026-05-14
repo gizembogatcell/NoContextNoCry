@@ -1,0 +1,132 @@
+docs/stories/1.anon-retro-board.story.md
+  s_87295a12c974ff::t_ed9a4380dbeadc 3,25,32-47,55-58,71-75,80-81,85,88-89,101-118,127
+docs/stories/2.ai-grouping-voting.story.md
+  s_87295a12c974ff::t_2ba635534dfb9b 3,32-45,53-57,61,63-64,68-70,74-75,81-87,96
+src/components/retro/timer-display.tsx
+  s_87295a12c974ff::t_542acc126969c3 3,20-24,34,37-42,67
+  s_87295a12c974ff::t_baa256aca2405a 1-2,4-19,25-33,35-36,43-44,46-66,68-94
+  s_87295a12c974ff::t_6c4c933ef93506 45
+src/types/retro.ts
+  s_87295a12c974ff::t_7f59835596414c 1-35
+src/services/retro-ai-actions.service.ts
+  s_49dd5f94f247d4::t_fbe13bbbef4d92 1-81
+src/app/api/retros/route.ts
+  s_87295a12c974ff::t_4bc91e0a823621 1-42
+src/services/mailer.ts
+  s_49dd5f94f247d4::t_d4f9734dee7a88 1-27
+src/hooks/use-retro-polling.ts
+  s_87295a12c974ff::t_0c5cb8ef4f8e39 1-83,85,90,93,96-110
+  s_87295a12c974ff::t_d5dfa4eff0dbc1 84,86-89,91-92,94-95
+src/app/api/retros/[id]/actions/route.ts
+  s_49dd5f94f247d4::t_6e605c207c4f6a 1-94
+src/components/retro/column-layout.tsx
+  s_87295a12c974ff::t_ae9af5ac90b432 1-94
+package.json
+  s_49dd5f94f247d4::t_e03da250e69e9c 20
+src/components/retro/phase-bar.tsx
+  s_87295a12c974ff::t_073f69e84ec500 1-69
+docs/stories/4.mail-action-delivery.story.md
+  s_49dd5f94f247d4::t_f75a1ac485bc12 3
+  s_49dd5f94f247d4::t_ff60e1310d684b 30-39
+  s_49dd5f94f247d4::t_7dfe5dde6e37fc 73-79,88
+src/lib/magic-token.ts
+  s_49dd5f94f247d4::t_4aa5110a9b1b10 1-19
+src/app/api/actions/[id]/route.ts
+  s_49dd5f94f247d4::t_589c76439231ff 1-32
+src/components/retro/sticky-card.tsx
+  s_87295a12c974ff::t_0aa646589a9514 1-70
+src/app/api/retros/[id]/ai/group/route.ts
+  s_87295a12c974ff::t_5fcf447c7bd012 1-59
+src/app/api/retros/[id]/cards/route.ts
+  s_87295a12c974ff::t_0ddb697109ced9 1-66
+src/hooks/use-session-id.ts
+  s_87295a12c974ff::t_7b47501ad47a0b 1-2,4-6,24,26
+  s_87295a12c974ff::t_9fdd1c9728673b 3,7-19,21-23,25
+  s_87295a12c974ff::t_799319e1f612d5 20
+src/components/retro/card-list.tsx
+  s_87295a12c974ff::t_92ff7e83a32bb0 1-53
+src/lib/__tests__/magic-token.test.ts
+  s_49dd5f94f247d4::t_453de71632154d 1-51
+src/app/api/retros/[id]/phase/route.ts
+  s_87295a12c974ff::t_35ef2e4465e39e 1-43
+src/services/retro.service.ts
+  s_87295a12c974ff::t_493fde601cff43 1-306
+src/app/api/retros/[id]/cards/[cardId]/vote/route.ts
+  s_87295a12c974ff::t_09120e95d318a4 1-38
+docs/stories/3.ai-action-suggestion.story.md
+  s_49dd5f94f247d4::t_bdf6504c81e768 3
+  s_49dd5f94f247d4::t_0e739d72a4c1b3 32-42
+  s_49dd5f94f247d4::t_35d13698f0e63d 82-96,105
+src/lib/validations/action.schema.ts
+  s_49dd5f94f247d4::t_e6ab60feb0b7d5 1-80
+src/services/action.service.ts
+  s_49dd5f94f247d4::t_473d0cbf46fed4 1-121
+src/lib/validations/retro.schema.ts
+  s_87295a12c974ff::t_c124fe9dc31168 1-90
+src/components/retro/ai-group-panel.tsx
+  s_87295a12c974ff::t_f7551b05fa7def 1-195
+src/components/retro/add-card-form.tsx
+  s_87295a12c974ff::t_8bec1df11e4836 1-90
+src/types/action.ts
+  s_49dd5f94f247d4::t_68d5e9a82eb3c6 1-33
+src/app/api/retros/[id]/route.ts
+  s_87295a12c974ff::t_3900f9072381e7 1-30
+src/services/retro-ai.service.ts
+  s_87295a12c974ff::t_c7c4f43b71b8df 1-62
+src/app/(app)/retros/page.tsx
+  s_87295a12c974ff::t_6ac47caeedc45d 56-57
+  s_87295a12c974ff::t_31a71b51791bd4 1-55,58-122
+src/app/(app)/retros/new/page.tsx
+  s_87295a12c974ff::t_8e5214505f85cf 1-122
+src/components/retro/action-suggestion-panel.tsx
+  s_49dd5f94f247d4::t_811c011aead66b 1-365
+src/components/retro/vote-button.tsx
+  s_87295a12c974ff::t_6b7214cdf66e35 1-71
+src/templates/__tests__/action-assigned.test.ts
+  s_49dd5f94f247d4::t_c023cc0cbbe209 1-76
+src/lib/validations/__tests__/action.schema.test.ts
+  s_49dd5f94f247d4::t_874f085d3f1639 1-142
+src/templates/action-assigned.html.ts
+  s_49dd5f94f247d4::t_ebac4124a41b9a 1-124
+src/app/(app)/retros/[id]/page.tsx
+  s_87295a12c974ff::t_b888441fc5b357 1-24,27-29,53-251,258-269
+  s_2d3bece9448686::t_6386f82fd48ceb 25-26
+  s_2d3bece9448686::t_1b01ab6d36a16c 30-52
+  s_2d3bece9448686::t_73726be9046b60 252-257
+src/app/api/retros/[id]/ai/actions/route.ts
+  s_49dd5f94f247d4::t_d27b5eb1194dbd 1-25
+src/services/mail-content.ts
+  s_49dd5f94f247d4::t_6e215d9f8ab66d 1-39
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.8",
+  "base_commit_sha": "7d55c3ed1dd1e756f020ff08c177ce907cf26076",
+  "prompts": {},
+  "sessions": {
+    "s_2d3bece9448686": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "44472352-2abd-4e58-89c4-1bbb86795823",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "TCGBOGA <gizem.boga@turkcell.com.tr>"
+    },
+    "s_49dd5f94f247d4": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "dd77c941-a711-46d9-995b-282d29e2b21f",
+        "model": "claude-4.6-opus-high-thinking"
+      },
+      "human_author": "TCGBOGA <gizem.boga@turkcell.com.tr>"
+    },
+    "s_87295a12c974ff": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "e44fc98c-1b3a-4beb-b86d-f555a3a4de95",
+        "model": "claude-4.6-opus-high-thinking"
+      },
+      "human_author": "TCGBOGA <gizem.boga@turkcell.com.tr>"
+    }
+  }
+}
