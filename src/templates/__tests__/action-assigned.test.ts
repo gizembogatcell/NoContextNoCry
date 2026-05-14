@@ -65,9 +65,9 @@ describe("renderActionAssignedMail", () => {
     expect(html).not.toContain("Ahmet");
   });
 
-  it("should include RetroFlow branding", () => {
+  it("should include RetroMind branding", () => {
     const html = renderActionAssignedMail(defaultParams);
-    expect(html).toContain("RetroFlow");
+    expect(html).toContain("RetroMind");
     expect(html).toContain("#6366f1");
   });
 });

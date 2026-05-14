@@ -35,7 +35,7 @@ export function AppHeader({ email, onSignOut }: AppHeaderProps) {
       <Flex align="center" gap="large">
         <Link href="/dashboard">
           <Title level={5} style={{ margin: 0 }}>
-            RetroFlow
+            RetroMind
           </Title>
         </Link>
         <Flex gap="small">

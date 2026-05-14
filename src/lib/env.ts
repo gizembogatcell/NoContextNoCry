@@ -48,6 +48,10 @@ const serverEnvSchema = z.object({
   AI_PROXY_BASE_URL: z.string().url().default("http://127.0.0.1:58818"),
   AI_PROXY_API_KEY: z.string().min(1).default(""),
   AI_MODEL_NAME: z.string().min(1).default("turkcell-glm"),
+  RESEND_API_KEY: z.string().min(1).default(""),
+  RESEND_FROM_EMAIL: z.string().email().default("noreply@retromind.app"),
+  CRON_SECRET: z.string().min(1).default(""),
+  NEXT_PUBLIC_APP_URL: z.string().url().default("http://localhost:3000"),
 });
 
 export type ServerEnv = z.infer<typeof serverEnvSchema>;
@@ -70,6 +74,10 @@ export function getServerEnv(): ServerEnv {
     AI_PROXY_BASE_URL: process.env.AI_PROXY_BASE_URL,
     AI_PROXY_API_KEY: process.env.AI_PROXY_API_KEY,
     AI_MODEL_NAME: process.env.AI_MODEL_NAME,
+    RESEND_API_KEY: process.env.RESEND_API_KEY,
+    RESEND_FROM_EMAIL: process.env.RESEND_FROM_EMAIL,
+    CRON_SECRET: process.env.CRON_SECRET,
+    NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
   });
 
   if (!parsed.success) {

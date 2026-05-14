@@ -42,7 +42,10 @@ export function failFromUnknown(err: unknown): NextResponse {
     console.error("[api]", err);
   }
   return fail(
-    { message, code: "INTERNAL_ERROR" },
+    {
+      message: process.env.NODE_ENV === "production" ? "Internal server error" : message,
+      code: "INTERNAL_ERROR",
+    },
     { status: 500 },
   );
 }

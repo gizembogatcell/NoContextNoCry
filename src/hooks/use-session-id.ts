@@ -2,7 +2,7 @@
 
 import { useSyncExternalStore } from "react";
 
-const SESSION_KEY = "retroflow_session_id";
+const SESSION_KEY = "retromind_session_id";
 
 function getSnapshot(): string {
   let id = localStorage.getItem(SESSION_KEY);

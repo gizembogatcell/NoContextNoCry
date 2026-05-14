@@ -24,7 +24,7 @@ const manrope = Manrope({
 });
 
 export const metadata: Metadata = {
-  title: "RetroFlow",
+  title: "RetroMind",
   description: "Retro'dan aksiyona, aksiyondan öğrenmeye.",
 };
 

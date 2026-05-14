@@ -57,7 +57,7 @@ export function AiGroupPanel({
 
       if (!res.ok) {
         const body = await res.json().catch(() => ({})) as { error?: { message?: string; code?: string } };
-        if (body?.error?.code === "AI_TIMEOUT") {
+        if (body?.error?.code === "AI_TIMEOUT_ERROR") {
           setError("AI yanıt süresini aştı. Manuel gruplama yapabilirsiniz.");
           return;
         }

@@ -1,3 +1,5 @@
+import { escapeHtml } from "./html-escape";
+
 type RenderParams = {
   subject: string;
   body: string;
@@ -10,14 +12,14 @@ type RenderParams = {
 
 export function renderPreRetroSummaryMail(params: RenderParams): string {
   const {
-    subject,
-    body,
     completedCount,
     openCount,
     failedCount,
     openActions,
     retroUrl,
   } = params;
+  const subject = escapeHtml(params.subject);
+  const body = escapeHtml(params.body);
 
   const actionRows = buildActionRows(openActions);
 
@@ -31,7 +33,7 @@ export function renderPreRetroSummaryMail(params: RenderParams): string {
 
 <!-- Header -->
 <tr><td style="background:linear-gradient(135deg,#6366f1,#8b5cf6);padding:32px 24px;text-align:center;">
-<h1 style="margin:0;color:#ffffff;font-size:24px;font-weight:700;">🚀 RetroFlow</h1>
+<h1 style="margin:0;color:#ffffff;font-size:24px;font-weight:700;">🚀 RetroMind</h1>
 <p style="margin:8px 0 0;color:#e0e7ff;font-size:14px;">${subject}</p>
 </td></tr>
 
@@ -62,7 +64,7 @@ Retroya Katıl →
 
 <!-- Footer -->
 <tr><td style="padding:16px 24px 24px;text-align:center;border-top:1px solid #e2e8f0;">
-<p style="margin:0;font-size:12px;color:#94a3b8;">Bu mail RetroFlow tarafından otomatik gönderilmiştir. 💜</p>
+<p style="margin:0;font-size:12px;color:#94a3b8;">Bu mail RetroMind tarafından otomatik gönderilmiştir. 💜</p>
 </td></tr>
 
 </table>
@@ -95,10 +97,11 @@ function buildActionRows(
 
   const items = actions
     .map((a) => {
+      const title = escapeHtml(a.title);
       const assignee = a.assigneeName
-        ? ` <span style="color:#94a3b8;">— ${a.assigneeName}</span>`
+        ? ` <span style="color:#94a3b8;">— ${escapeHtml(a.assigneeName)}</span>`
         : "";
-      return `<tr><td style="padding:6px 0;font-size:14px;color:#334155;border-bottom:1px solid #f1f5f9;">⏳ ${a.title}${assignee}</td></tr>`;
+      return `<tr><td style="padding:6px 0;font-size:14px;color:#334155;border-bottom:1px solid #f1f5f9;">⏳ ${title}${assignee}</td></tr>`;
     })
     .join("\n");
 

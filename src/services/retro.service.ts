@@ -143,22 +143,6 @@ export async function getPreviousRetro(
   return doc ? docToRetro(doc) : null;
 }
 
-export async function getRetroRecipients(
-  retroId: string,
-): Promise<string[]> {
-  const { listActionsByRetro } = await import("@/services/action.service");
-  const actions = await listActionsByRetro(retroId);
-  const emails = new Set<string>();
-
-  for (const action of actions) {
-    if (action.assigneeEmail) {
-      emails.add(action.assigneeEmail);
-    }
-  }
-
-  return [...emails];
-}
-
 // ── Phase transitions ───────────────────────────────────────────────
 
 export class PhaseTransitionError extends Error {

@@ -27,9 +27,9 @@ describe("renderPreRetroSummaryMail", () => {
     expect(html).toContain("Sprint Özeti Hazır!");
   });
 
-  it("should include RetroFlow branding", () => {
+  it("should include RetroMind branding", () => {
     const html = renderPreRetroSummaryMail(defaultParams);
-    expect(html).toContain("RetroFlow");
+    expect(html).toContain("RetroMind");
     expect(html).toContain("#6366f1");
   });
 
@@ -79,6 +79,6 @@ describe("renderPreRetroSummaryMail", () => {
 
   it("should include footer", () => {
     const html = renderPreRetroSummaryMail(defaultParams);
-    expect(html).toContain("RetroFlow tarafından otomatik gönderilmiştir");
+    expect(html).toContain("RetroMind tarafından otomatik gönderilmiştir");
   });
 });

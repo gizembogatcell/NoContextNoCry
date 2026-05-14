@@ -95,7 +95,7 @@ export async function groupCardsWithAi(
   let rawResponse: string;
   try {
     rawResponse = await Promise.race([
-      callAiProxy([{ role: "user", content: prompt }]),
+      callAiProxy([{ role: "user", content: prompt }], { signal: controller.signal }),
       new Promise<never>((_, reject) => {
         controller.signal.addEventListener("abort", () => {
           reject(new AiTimeoutError());
@@ -130,6 +130,10 @@ export async function groupCardsWithAi(
   return groups;
 }
 
+function escapeRegex(str: string): string {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
 // ── Card group aggregation (for action suggestions) ──────────────────
 
 type CardGroup = {
@@ -158,7 +162,7 @@ async function getRepeatCount(
   const cards = db.collection("cards");
   const matchingRetroIds: string[] = await cards.distinct("retroId", {
     retroId: { $in: previousRetroIds },
-    groupTitle: { $regex: groupTitle, $options: "i" },
+    groupTitle: { $regex: escapeRegex(groupTitle), $options: "i" },
   });
 
   return matchingRetroIds.length;

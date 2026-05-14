@@ -1,5 +1,6 @@
 import type { NextRequest } from "next/server";
 
+import { getServerEnv } from "@/lib/env";
 import { requireUser, UnauthorizedError } from "@/lib/api/auth";
 import { ok, fail, failFromUnknown } from "@/lib/api/response";
 import { createRetroSchema } from "@/lib/validations/retro.schema";
@@ -7,8 +8,8 @@ import {
   createRetro,
   listRetrosByUser,
   getPreviousRetro,
-  getRetroRecipients,
 } from "@/services/retro.service";
+import { getRetroRecipients } from "@/services/action.service";
 import {
   getActionStatsByRetro,
   markFailedAsCarryOver,
@@ -20,7 +21,12 @@ import { sendMail } from "@/services/mailer";
 export async function POST(request: NextRequest) {
   try {
     const decoded = await requireUser(request);
-    const json = await request.json().catch(() => ({}));
+    let json: unknown;
+    try {
+      json = await request.json();
+    } catch {
+      return fail({ message: "Invalid JSON body", code: "INVALID_JSON" }, { status: 400 });
+    }
     const parsed = createRetroSchema.safeParse(json);
 
     if (!parsed.success) {
@@ -71,7 +77,7 @@ async function markCarryOverAndSendMails(
       })),
     });
 
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+    const { NEXT_PUBLIC_APP_URL: appUrl } = getServerEnv();
     const retroUrl = `${appUrl}/retros/${newRetroId}`;
 
     const html = renderPreRetroSummaryMail({

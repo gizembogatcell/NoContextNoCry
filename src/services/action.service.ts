@@ -3,6 +3,7 @@ import crypto from "node:crypto";
 import type { Collection } from "mongodb";
 
 import { getDb } from "@/lib/mongodb/client";
+import { generateMagicToken } from "@/lib/magic-token";
 import type { Action, ActionStatus } from "@/types/action";
 import type { CreateActionInput } from "@/lib/validations/action.schema";
 
@@ -50,17 +51,12 @@ export class ActionCreateError extends Error {
 
 // ── CRUD ─────────────────────────────────────────────────────────────
 
-const MAGIC_TOKEN_TTL_MS = 48 * 60 * 60 * 1000; // 48 hours
-
 export async function createAction(
   retroId: string,
   input: CreateActionInput,
 ): Promise<Action> {
   const now = new Date().toISOString();
-  const magicToken = crypto.randomUUID();
-  const magicTokenExpiresAt = new Date(
-    Date.now() + MAGIC_TOKEN_TTL_MS,
-  ).toISOString();
+  const { token: magicToken, expiresAt: magicTokenExpiresAt } = generateMagicToken();
 
   const col = await actionsCollection();
 
@@ -264,6 +260,21 @@ export async function getCarryOverActions(retroId: string): Promise<Action[]> {
     .sort({ createdAt: -1 })
     .toArray();
   return docs.map(docToAction);
+}
+
+export async function getRetroRecipients(
+  retroId: string,
+): Promise<string[]> {
+  const actions = await listActionsByRetro(retroId);
+  const emails = new Set<string>();
+
+  for (const action of actions) {
+    if (action.assigneeEmail) {
+      emails.add(action.assigneeEmail);
+    }
+  }
+
+  return [...emails];
 }
 
 export async function markFailedAsCarryOver(retroId: string): Promise<number> {

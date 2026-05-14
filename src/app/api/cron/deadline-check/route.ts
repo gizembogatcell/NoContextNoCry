@@ -1,13 +1,21 @@
-import { ok, failFromUnknown } from "@/lib/api/response";
+import type { NextRequest } from "next/server";
+
+import { getServerEnv } from "@/lib/env";
+import { ok, fail, failFromUnknown } from "@/lib/api/response";
 import { getActionsDueToday, updateActionMailSent } from "@/services/action.service";
 import { sendMail } from "@/services/mailer";
 import { renderDeadlineCheckMail } from "@/templates/deadline-check.html";
 
-const APP_URL =
-  process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
-
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
+    const { CRON_SECRET, NEXT_PUBLIC_APP_URL } = getServerEnv();
+
+    if (CRON_SECRET) {
+      const authHeader = request.headers.get("authorization");
+      if (authHeader !== `Bearer ${CRON_SECRET}`) {
+        return fail({ message: "Unauthorized", code: "UNAUTHORIZED" }, { status: 401 });
+      }
+    }
     const dueActions = await getActionsDueToday();
 
     if (dueActions.length === 0) {
@@ -32,7 +40,7 @@ export async function GET() {
         assigneeName: action.assigneeName,
         deadline: action.deadline,
         magicToken: action.magicToken,
-        appUrl: APP_URL,
+        appUrl: NEXT_PUBLIC_APP_URL,
       });
 
       const mailResult = await sendMail({

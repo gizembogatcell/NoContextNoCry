@@ -68,7 +68,7 @@ export function AddCardForm({
         onChange={(e) => setContent(e.target.value)}
         disabled={disabled}
         autoSize={{ minRows: 2, maxRows: 4 }}
-        maxLength={1000}
+        maxLength={2000}
         onPressEnter={(e) => {
           if (e.shiftKey) return;
           e.preventDefault();

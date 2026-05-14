@@ -1,3 +1,5 @@
+import { escapeHtml } from "./html-escape";
+
 type RenderParams = {
   actionTitle: string;
   assigneeName: string | null;
@@ -7,7 +9,11 @@ type RenderParams = {
 };
 
 export function renderDeadlineCheckMail(params: RenderParams): string {
-  const { actionTitle, assigneeName, deadline, magicToken, appUrl } = params;
+  const { magicToken, appUrl } = params;
+  const actionTitle = escapeHtml(params.actionTitle);
+  const assigneeName = params.assigneeName ? escapeHtml(params.assigneeName) : null;
+  const deadline = params.deadline ? escapeHtml(params.deadline) : null;
+
   const greeting = assigneeName
     ? `Merhaba ${assigneeName}! 👋`
     : "Merhaba! 👋";
@@ -30,7 +36,7 @@ export function renderDeadlineCheckMail(params: RenderParams): string {
 
 <!-- Header -->
 <tr><td style="background:linear-gradient(135deg,#6366f1,#8b5cf6);padding:32px 24px;text-align:center;">
-<h1 style="margin:0;color:#ffffff;font-size:24px;font-weight:700;">🚀 RetroFlow</h1>
+<h1 style="margin:0;color:#ffffff;font-size:24px;font-weight:700;">🚀 RetroMind</h1>
 <p style="margin:8px 0 0;color:#e0e7ff;font-size:14px;">Aksiyon Durum Sorgulama</p>
 </td></tr>
 
@@ -85,7 +91,7 @@ ${deadlineRow}
 
 <!-- Footer -->
 <tr><td style="padding:16px 24px 24px;text-align:center;border-top:1px solid #e2e8f0;">
-<p style="margin:0;font-size:12px;color:#94a3b8;">Bu mail RetroFlow tarafından otomatik gönderilmiştir. 💜</p>
+<p style="margin:0;font-size:12px;color:#94a3b8;">Bu mail RetroMind tarafından otomatik gönderilmiştir. 💜</p>
 </td></tr>
 
 </table>

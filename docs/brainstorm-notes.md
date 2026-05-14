@@ -1,4 +1,4 @@
-# Brainstorm Notes — RetroFlow
+# Brainstorm Notes — RetroMind
 
 **Tarih:** 14 Mayıs 2026  
 **Oturum Süresi:** ~25 dakika  
@@ -37,7 +37,7 @@ Bir ekip retrodan çıkıp aynı platformda aksiyon maddelerini atayabiliyor, ta
 ## Seçilen Konsept
 
 ```
-CONCEPT: RetroFlow — Retro'dan Aksiyona, Aksiyondan Öğrenmeye
+CONCEPT: RetroMind — Retro'dan Aksiyona, Aksiyondan Öğrenmeye
 
 Problem:
   Ekipler retroları dış araçlarda yapıyor; alınan aksiyonlar takip

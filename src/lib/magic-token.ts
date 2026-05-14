@@ -7,7 +7,7 @@ export function generateMagicToken(): {
   token: string;
   expiresAt: string;
 } {
-  const token = crypto.randomUUID();
+  const token = crypto.randomBytes(32).toString("hex");
   const expiresAt = new Date(
     Date.now() + TOKEN_EXPIRY_HOURS * 60 * 60 * 1000,
   ).toISOString();

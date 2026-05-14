@@ -39,6 +39,7 @@ type AnthropicMessage = { role: "user" | "assistant"; content: string };
 
 export async function callAiProxy(
   messages: AnthropicMessage[],
+  options?: { signal?: AbortSignal },
 ): Promise<string> {
   const env = getServerEnv();
   const url = `${env.AI_PROXY_BASE_URL}/v1/messages`;
@@ -55,6 +56,7 @@ export async function callAiProxy(
       max_tokens: 4096,
       messages,
     }),
+    signal: options?.signal,
   });
 
   if (!res.ok) {
