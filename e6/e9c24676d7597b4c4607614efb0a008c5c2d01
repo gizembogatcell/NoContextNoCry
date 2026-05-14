@@ -1,0 +1,22 @@
+src/contexts/auth-context.tsx
+  s_35b3173c9ff83a::t_712c2ccdeb0c8d 23-38,51-52,54-55,58-59,78,87,102
+next.config.ts
+  s_35b3173c9ff83a::t_0ca48fbaa932ec 1-2,7
+  s_35b3173c9ff83a::t_dd106c269f98d6 5-6,8-9
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.8",
+  "base_commit_sha": "e6e9c24676d7597b4c4607614efb0a008c5c2d01",
+  "prompts": {},
+  "sessions": {
+    "s_35b3173c9ff83a": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "bb080c4e-1363-43c7-8fa5-055753a5445e",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "TCGBOGA <gizem.boga@turkcell.com.tr>"
+    }
+  }
+}
