@@ -45,6 +45,9 @@ const serverEnvSchema = z.object({
   FIREBASE_ADMIN_PROJECT_ID: z.string().min(1).optional(),
   FIREBASE_ADMIN_CLIENT_EMAIL: z.string().email().optional(),
   FIREBASE_ADMIN_PRIVATE_KEY: z.string().min(1).optional(),
+  AI_PROXY_BASE_URL: z.string().url().default("http://127.0.0.1:58818"),
+  AI_PROXY_API_KEY: z.string().min(1).default(""),
+  AI_MODEL_NAME: z.string().min(1).default("turkcell-glm"),
 });
 
 export type ServerEnv = z.infer<typeof serverEnvSchema>;
@@ -64,6 +67,9 @@ export function getServerEnv(): ServerEnv {
       /\\n/g,
       "\n",
     ),
+    AI_PROXY_BASE_URL: process.env.AI_PROXY_BASE_URL,
+    AI_PROXY_API_KEY: process.env.AI_PROXY_API_KEY,
+    AI_MODEL_NAME: process.env.AI_MODEL_NAME,
   });
 
   if (!parsed.success) {

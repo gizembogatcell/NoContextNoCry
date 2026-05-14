@@ -1,3 +1,11 @@
+<div align="center">
+
+![header](https://capsule-render.vercel.app/api?type=waving&color=gradient&height=200&section=header&text=Retro%20Tool%202026&fontSize=40&fontAlignY=35&desc=Next.js%2016%20%7C%20TypeScript%20%7C%20Ant%20Design%206%20%7C%20Firebase%20%7C%20MongoDB&descAlignY=55&descSize=16)
+
+[![skills](https://skillicons.dev/icons?i=ts,react,nextjs,nodejs,mongodb,firebase)](https://skillicons.dev)
+
+</div>
+
 # AI Hackathon Template
 
 Next.js 16 (App Router) + TypeScript + Ant Design 6 + Firebase Auth + MongoDB Atlas.
@@ -122,3 +130,11 @@ Activate with: `act as #N agent-name` in Cursor chat. After `*handoff`, manually
 - Index **Next.js** and **Ant Design** docs under Cursor Settings → Features → Docs.
 - `@README.md` or `@AGENTS.md` when starting tasks.
 - Rules in `.cursor/rules/`, skills in `.cursor/skills/`, prompts in `.cursor/prompts/`.
+
+---
+
+<div align="center">
+
+![footer](https://capsule-render.vercel.app/api?type=waving&color=gradient&height=120&section=footer)
+
+</div>
