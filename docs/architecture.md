@@ -256,35 +256,61 @@ Tüm route'lar `requireUser()` ile korunur (magic link route'ları hariç).
 src/app/
   (app)/                              # Auth guard — (app)/layout.tsx
     dashboard/
-      page.tsx                        # Mevcut + Son Retro Özeti widget'ı (Story 8)
+      page.tsx                        # Ana sayfa: özet widget, "Yeni Retro" butonu,
+                                      # carry-over banner, son retrolar listesi (Story 8)
     retros/
-      page.tsx                        # Retro listesi + "Yeni Retro" butonu
+      page.tsx                        # Retro listesi — geçmiş retrolar kart olarak
       new/
         page.tsx                      # Retro oluşturma formu (Story 1)
       [id]/
-        page.tsx                      # Retro Board — phase-aware (Story 1-3)
-        actions/
-          page.tsx                    # Aksiyon listesi (Story 3)
+        page.tsx                      # Retro Board — phase-aware kanban (Story 1-3)
     actions/
-      page.tsx                        # Tüm aksiyonlar — Team Board (Story 8)
+      page.tsx                        # Team Board — tüm retroların aksiyonları,
+                                      # filtreli liste: Tümü/Açık/Tamamlandı/Başarısız
     settings/
-      page.tsx                        # Jira ayarları (Story 5)
+      page.tsx                        # Jira ayarları: domain, token, proje key (Story 5)
   (auth)/
     login/
-      page.tsx                        # Mevcut
+      page.tsx                        # Firebase login (mevcut)
   (marketing)/
-    page.tsx                          # Mevcut
+    page.tsx                          # Landing (mevcut)
   action-update/
     [token]/
       page.tsx                        # Magic link landing — auth gerektirmez (Story 6)
+                                      # Done / In Progress / Failed seçimi
   api/
-    retros/...                        # Yukarıdaki API route'lar
-    actions/...
-    settings/...
-    cron/...
+    retros/...                        # Retro + card + vote + AI + action route'ları
+    actions/...                       # Action CRUD + summary + magic link token
+    settings/...                      # Jira ayarları
+    cron/...                          # Deadline check cron
     ai/...                            # Mevcut AI chat route'ları
     users/...                         # Mevcut
 ```
+
+### Navigasyon Akışı
+
+```
+Login (/login)
+  └─> Dashboard (/dashboard)
+        ├─ "Yeni Retro Başlat" → Retro Oluşturma (/retros/new)
+        │     └─> Retro Board (/retros/[id])
+        │           └─ [write → vote → actions → closed]
+        ├─ "Retrolarım" → Retro Listesi (/retros)
+        │     └─> Retro Board (/retros/[id])
+        ├─ "Aksiyonlar" → Team Board (/actions)
+        └─ "Ayarlar" → Jira Ayarları (/settings)
+
+Mail linki (login yok)
+  └─> Action Update (/action-update/[token])
+```
+
+### Header Navigasyon Menüsü
+
+```
+[ RetroFlow ]    Retrolar    Aksiyonlar    Ayarlar    [ kullanıcı email | Çıkış ]
+```
+
+Mevcut `src/components/layout/app-header.tsx` güncellenerek "Retrolar" ve "Aksiyonlar" nav linkleri eklenir.
 
 ---
 
