@@ -1,0 +1,21 @@
+src/templates/__tests__/action-assigned.test.ts
+  s_61cd661fd946bd::t_4758e618b3b5ba 3,5,7-8,16,22,26-28,31-32,37,41-43,47,51-52,56,59-60,62,64-65,69,71
+src/components/retro/action-suggestion-panel.tsx
+  s_61cd661fd946bd::t_6784bed2c0ef5f 164-165
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.8",
+  "base_commit_sha": "8fdbfbee21e3b7eb62f3896dde5c2ff230a23ba1",
+  "prompts": {},
+  "sessions": {
+    "s_61cd661fd946bd": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "503b68cf-8ea1-48c9-af5f-9740a94cc0a8",
+        "model": "claude-4.6-opus-high-thinking"
+      },
+      "human_author": "TCGBOGA <gizem.boga@turkcell.com.tr>"
+    }
+  }
+}
