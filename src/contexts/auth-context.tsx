@@ -36,11 +36,22 @@ const MOCK_USER = DEV_BYPASS_AUTH
     } as unknown as User)
   : null;
 
+const GUEST_USER = {
+  uid: "guest-demo-user",
+  email: "guest@retromind.demo",
+  displayName: "Guest User",
+  photoURL: null,
+  emailVerified: false,
+  isAnonymous: true,
+  getIdToken: async () => "guest-demo-token",
+} as unknown as User;
+
 type AuthContextValue = {
   user: User | null;
   loading: boolean;
   firebaseConfigured: boolean;
   signInWithGoogle: () => Promise<User>;
+  signInAsGuest: () => void;
   signOut: () => Promise<void>;
   getIdToken: (forceRefresh?: boolean) => Promise<string | null>;
 };
@@ -97,6 +108,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return credential.user;
   }, []);
 
+  const signInAsGuest = useCallback(() => {
+    setUser(GUEST_USER);
+    setLoading(false);
+  }, []);
+
   const getIdToken = useCallback(
     async (forceRefresh = false) => {
       if (DEV_BYPASS_AUTH) return "dev-bypass-token";
@@ -112,10 +128,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       loading,
       firebaseConfigured,
       signInWithGoogle,
+      signInAsGuest,
       signOut,
       getIdToken,
     }),
-    [user, loading, firebaseConfigured, signInWithGoogle, signOut, getIdToken],
+    [user, loading, firebaseConfigured, signInWithGoogle, signInAsGuest, signOut, getIdToken],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

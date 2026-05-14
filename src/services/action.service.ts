@@ -3,8 +3,9 @@ import crypto from "node:crypto";
 import type { Collection } from "mongodb";
 
 import { getDb } from "@/lib/mongodb/client";
-import type { Action } from "@/types/action";
+import type { Action, ActionStatus } from "@/types/action";
 import type { CreateActionInput } from "@/lib/validations/action.schema";
+import { listRetrosByUser } from "@/services/retro.service";
 
 // ── MongoDB document type ────────────────────────────────────────────
 
@@ -80,9 +81,6 @@ export async function createAction(
     magicTokenUsed: false,
     failedReason: null,
     nextRetroCarryOver: false,
-    jiraTicketUrl: null,
-    jiraTicketId: null,
-    jiraError: null,
     createdAt: now,
     updatedAt: now,
   };
@@ -135,4 +133,93 @@ export async function updateAction(
     { returnDocument: "after" },
   );
   return result ? docToAction(result) : null;
+}
+
+// ── Magic-link updates ────────────────────────────────────────────────
+
+export async function updateActionByToken(
+  token: string,
+  fields: Partial<
+    Pick<
+      Action,
+      "status" | "deadline" | "failedReason" | "nextRetroCarryOver" | "magicTokenUsed"
+    >
+  >,
+): Promise<Action | null> {
+  const col = await actionsCollection();
+  const now = new Date().toISOString();
+  const result = await col.findOneAndUpdate(
+    { magicToken: token },
+    { $set: { ...fields, updatedAt: now } },
+    { returnDocument: "after" },
+  );
+  return result ? docToAction(result) : null;
+}
+
+// ── Deadline cron helpers ─────────────────────────────────────────────
+
+export async function findActionsDueBefore(date: Date): Promise<Action[]> {
+  const col = await actionsCollection();
+  const docs = await col
+    .find({
+      status: "open",
+      deadline: { $ne: null, $lte: date.toISOString() },
+    })
+    .toArray();
+  return docs.map(docToAction);
+}
+
+// ── Dashboard & carry-over ────────────────────────────────────────────
+
+type ActionSummary = {
+  done: Action[];
+  open: Action[];
+  failed: Action[];
+  stats: { done: number; open: number; failed: number };
+};
+
+export async function getActionsSummaryByUser(
+  userId: string,
+): Promise<ActionSummary | null> {
+  const retros = await listRetrosByUser(userId);
+  if (retros.length === 0) return null;
+
+  const lastRetro = retros[0];
+  const actions = await listActionsByRetro(lastRetro.id);
+
+  const grouped: Record<string, Action[]> = { done: [], open: [], failed: [] };
+  for (const a of actions) {
+    if (a.status === "done") grouped.done.push(a);
+    else if (a.status === "failed") grouped.failed.push(a);
+    else grouped.open.push(a);
+  }
+
+  return {
+    done: grouped.done,
+    open: grouped.open,
+    failed: grouped.failed,
+    stats: {
+      done: grouped.done.length,
+      open: grouped.open.length,
+      failed: grouped.failed.length,
+    },
+  };
+}
+
+export async function getCarryOverActions(
+  userId: string,
+): Promise<Action[]> {
+  const retros = await listRetrosByUser(userId);
+  if (retros.length === 0) return [];
+
+  const lastRetro = retros[0];
+  const col = await actionsCollection();
+  const docs = await col
+    .find({
+      retroId: lastRetro.id,
+      status: { $in: ["open", "failed"] as ActionStatus[] },
+    })
+    .sort({ createdAt: -1 })
+    .toArray();
+  return docs.map(docToAction);
 }

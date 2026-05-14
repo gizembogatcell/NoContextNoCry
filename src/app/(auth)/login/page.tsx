@@ -14,12 +14,14 @@ import {
   Typography,
 } from "antd";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import { getFirebaseAuth } from "@/lib/firebase/client";
 import { useAuth } from "@/hooks/use-auth";
 
-const { Title } = Typography;
+const { Title, Text } = Typography;
+
+const DEMO_SECRET = "demo";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -28,10 +30,38 @@ export default function LoginPage() {
     user,
     loading: authLoading,
     signInWithGoogle,
+    signInAsGuest,
   } = useAuth();
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [googleSubmitting, setGoogleSubmitting] = useState(false);
+  const [isDemoUnlocked, setIsDemoUnlocked] = useState(false);
+  const [keyBuffer, setKeyBuffer] = useState("");
+
+  const handleDemoKeySequence = useCallback(
+    (e: KeyboardEvent) => {
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+      const next = (keyBuffer + e.key).slice(-DEMO_SECRET.length);
+      setKeyBuffer(next);
+      if (next === DEMO_SECRET) {
+        setIsDemoUnlocked(true);
+      }
+    },
+    [keyBuffer],
+  );
+
+  useEffect(() => {
+    window.addEventListener("keydown", handleDemoKeySequence);
+    return () => window.removeEventListener("keydown", handleDemoKeySequence);
+  }, [handleDemoKeySequence]);
+
+  const showDemoButton = isDemoUnlocked || !!error;
+
+  const onDemoLogin = () => {
+    signInAsGuest();
+    router.push("/dashboard");
+    router.refresh();
+  };
 
   const onGoogle = async () => {
     setError(null);
@@ -100,8 +130,8 @@ export default function LoginPage() {
     >
       <Card
         title={
-          <Title level={4} style={{ margin: 0 }}>
-            Sign in
+          <Title level={3} style={{ margin: 0, textAlign: "center" }}>
+            RetroMind
           </Title>
         }
         style={{ width: "100%", maxWidth: 400 }}
@@ -149,7 +179,17 @@ export default function LoginPage() {
             </Button>
           </Form.Item>
         </Form>
-        <Flex justify="center">
+        {showDemoButton && (
+          <>
+            <Divider plain>
+              <Text type="secondary" style={{ fontSize: 12 }}>demo</Text>
+            </Divider>
+            <Button onClick={onDemoLogin} block type="dashed">
+              Continue as Guest
+            </Button>
+          </>
+        )}
+        <Flex justify="center" style={{ marginTop: 12 }}>
           <Link href="/">Back home</Link>
         </Flex>
       </Card>

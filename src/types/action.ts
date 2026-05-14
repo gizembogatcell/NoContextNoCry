@@ -1,5 +1,5 @@
 export type ActionStatus = "open" | "done" | "in_progress" | "failed";
-export type ActionType = "mail" | "jira";
+export type ActionType = "mail";
 
 export type Action = {
   id: string;
@@ -17,9 +17,6 @@ export type Action = {
   magicTokenUsed: boolean;
   failedReason: string | null;
   nextRetroCarryOver: boolean;
-  jiraTicketUrl: string | null;
-  jiraTicketId: string | null;
-  jiraError: string | null;
   createdAt: string;
   updatedAt: string;
 };

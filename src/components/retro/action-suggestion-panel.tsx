@@ -8,7 +8,6 @@ import {
   Empty,
   Input,
   message,
-  Select,
   Space,
   Spin,
   Tag,
@@ -31,7 +30,7 @@ type ActionDraft = ActionSuggestion & {
   assigneeEmail: string;
   assigneeName: string;
   deadline: string | null;
-  type: "mail" | "jira";
+  type: "mail";
   isApproved: boolean;
   isDeleted: boolean;
   isSaving: boolean;
@@ -317,19 +316,6 @@ export function ActionSuggestionPanel({
                 disabled={draft.isApproved}
                 style={{ width: 150 }}
               />
-              <Select
-                value={draft.type}
-                onChange={(val) =>
-                  updateDraft(draft.groupId, { type: val })
-                }
-                disabled={draft.isApproved}
-                style={{ width: 100 }}
-                options={[
-                  { value: "mail", label: "📧 Mail" },
-                  { value: "jira", label: "🎫 Jira" },
-                ]}
-                aria-label="Aksiyon tipi"
-              />
             </Space>
 
             {!draft.isApproved && (
@@ -352,7 +338,7 @@ export function ActionSuggestionPanel({
               </Space>
             )}
 
-            {draft.isApproved && draft.type === "mail" && (
+            {draft.isApproved && (
               <Text type="success">
                 <SendOutlined /> Mail gönderimi tetiklendi
               </Text>

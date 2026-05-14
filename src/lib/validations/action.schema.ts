@@ -10,9 +10,7 @@ export const createActionSchema = z.object({
     .datetime({ message: "Deadline must be a valid ISO date" })
     .nullable()
     .optional(),
-  type: z.enum(["mail", "jira"], {
-    message: "Type must be 'mail' or 'jira'",
-  }),
+  type: z.literal("mail"),
 });
 
 export type CreateActionInput = z.infer<typeof createActionSchema>;
@@ -26,3 +24,11 @@ export const updateActionSchema = z.object({
 });
 
 export type UpdateActionInput = z.infer<typeof updateActionSchema>;
+
+export const magicLinkActionSchema = z.object({
+  action: z.enum(["done", "in_progress", "failed"]),
+  newDeadline: z.string().datetime().optional(),
+  reason: z.string().max(2000).optional(),
+});
+
+export type MagicLinkActionInput = z.infer<typeof magicLinkActionSchema>;

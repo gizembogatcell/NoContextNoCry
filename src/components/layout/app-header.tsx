@@ -49,11 +49,6 @@ export function AppHeader({ email, onSignOut }: AppHeaderProps) {
               Aksiyonlar
             </Button>
           </Link>
-          <Link href="/settings">
-            <Button type="text" size="small">
-              Ayarlar
-            </Button>
-          </Link>
         </Flex>
       </Flex>
 

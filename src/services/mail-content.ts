@@ -54,6 +54,61 @@ function buildPrompt(params: MailContentParams): string {
   return parts.join("\n");
 }
 
+// ── Pre-retro summary ────────────────────────────────────────────────
+
+type PreRetroSummaryParams = {
+  actions: Array<{
+    title: string;
+    status: string;
+    assigneeName: string | null;
+    deadline: string | null;
+  }>;
+};
+
+const FALLBACK_SUMMARY_SUBJECT = "📋 Retro Özeti — Aksiyonların Durumu";
+const FALLBACK_SUMMARY_BODY =
+  "Merhaba ekip! Yeni bir retro planlandı. " +
+  "Önceki aksiyonların durumunu aşağıdaki tablodan görebilirsiniz. " +
+  "Retroya hazırlıklı gelin! 💪";
+
+export async function generatePreRetroSummary(
+  params: PreRetroSummaryParams,
+): Promise<MailContent> {
+  const { actions } = params;
+  const done = actions.filter((a) => a.status === "done").length;
+  const open = actions.filter(
+    (a) => a.status === "open" || a.status === "in_progress",
+  ).length;
+  const failed = actions.filter((a) => a.status === "failed").length;
+
+  const actionList = actions
+    .map(
+      (a) =>
+        `- "${a.title}" (${a.assigneeName ?? "Sahipsiz"}) → ${a.status}${a.deadline ? ` [Deadline: ${a.deadline}]` : ""}`,
+    )
+    .join("\n");
+
+  const prompt = [
+    "Şu sprint aksiyon özetini Türkçe, eğlenceli ve motive edici şekilde yaz.",
+    `Tamamlanan: ${done}, Devam eden: ${open}, Yapılamayan: ${failed}.`,
+    `Aksiyonlar:\n${actionList}`,
+    "Yarın retro var. Ekibi motive et.",
+    "Emoji kullan. HTML döndürme, sadece düz metin gövde.",
+    'JSON döndür: { "subject": "...", "body": "..." }',
+    "Sadece geçerli JSON döndür, başka bir şey yazma.",
+  ].join("\n");
+
+  try {
+    const raw = await callAiProxy([{ role: "user", content: prompt }]);
+    return parseAiResponse(raw);
+  } catch (err) {
+    console.error("[mail-content] Pre-retro summary AI failed, using fallback:", err);
+    return { subject: FALLBACK_SUMMARY_SUBJECT, body: FALLBACK_SUMMARY_BODY };
+  }
+}
+
+// ── AI response parsing ──────────────────────────────────────────────
+
 function parseAiResponse(raw: string): MailContent {
   try {
     const cleaned = raw.replace(/```json\n?|\n?```/g, "").trim();
