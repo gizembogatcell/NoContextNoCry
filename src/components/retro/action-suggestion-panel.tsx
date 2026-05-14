@@ -161,12 +161,12 @@ export function ActionSuggestionPanel({
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            title: draft.suggestedText,
+            groupId: draft.groupId,
+            text: draft.suggestedText,
             assigneeEmail: draft.assigneeEmail,
             assigneeName: draft.assigneeName || null,
             deadline: draft.deadline,
             type: draft.type,
-            cardId: null,
           }),
         });
 
