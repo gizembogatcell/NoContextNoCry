@@ -123,6 +123,42 @@ export async function getRetroById(id: string): Promise<Retro | null> {
   return doc ? docToRetro(doc) : null;
 }
 
+export async function getPreviousRetro(
+  uid: string,
+  currentRetroId: string,
+): Promise<Retro | null> {
+  const col = await retrosCollection();
+  const current = await col.findOne({ _id: currentRetroId });
+  if (!current) return null;
+
+  const doc = await col.findOne(
+    {
+      createdBy: uid,
+      _id: { $ne: currentRetroId },
+      createdAt: { $lt: current.createdAt },
+    },
+    { sort: { createdAt: -1 } },
+  );
+
+  return doc ? docToRetro(doc) : null;
+}
+
+export async function getRetroRecipients(
+  retroId: string,
+): Promise<string[]> {
+  const { listActionsByRetro } = await import("@/services/action.service");
+  const actions = await listActionsByRetro(retroId);
+  const emails = new Set<string>();
+
+  for (const action of actions) {
+    if (action.assigneeEmail) {
+      emails.add(action.assigneeEmail);
+    }
+  }
+
+  return [...emails];
+}
+
 // ── Phase transitions ───────────────────────────────────────────────
 
 export class PhaseTransitionError extends Error {
@@ -444,6 +480,15 @@ export async function castVote(
   await votes.insertOne(doc);
 
   return docToVote(doc);
+}
+
+export async function getLatestRetroByUser(uid: string): Promise<Retro | null> {
+  const col = await retrosCollection();
+  const doc = await col.findOne(
+    { createdBy: uid },
+    { sort: { createdAt: -1 } },
+  );
+  return doc ? docToRetro(doc) : null;
 }
 
 export async function getVotesBySession(

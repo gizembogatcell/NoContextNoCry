@@ -4,6 +4,7 @@ export const createRetroSchema = z.object({
   title: z.string().min(1, "Title is required").max(200),
   timerMinutes: z.number().int().min(1).max(60),
   votesPerUser: z.number().int().min(1).max(20).default(3),
+  sendSummaryMail: z.boolean().default(true),
 });
 
 export type CreateRetroInput = z.infer<typeof createRetroSchema>;

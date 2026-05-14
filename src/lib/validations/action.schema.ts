@@ -26,3 +26,13 @@ export const updateActionSchema = z.object({
 });
 
 export type UpdateActionInput = z.infer<typeof updateActionSchema>;
+
+export const magicLinkActionSchema = z.object({
+  action: z.enum(["done", "in-progress", "failed"], {
+    message: "Action must be 'done', 'in-progress', or 'failed'",
+  }),
+  deadline: z.string().datetime({ message: "Invalid deadline format" }).optional(),
+  failedReason: z.string().min(1).max(2000).optional(),
+});
+
+export type MagicLinkActionInput = z.infer<typeof magicLinkActionSchema>;
