@@ -298,6 +298,15 @@ export async function listCards(
   return docs.map(docToCard);
 }
 
+export async function getCardById(
+  retroId: string,
+  cardId: string,
+): Promise<Card | null> {
+  const col = await cardsCollection();
+  const doc = await col.findOne({ _id: cardId, retroId });
+  return doc ? docToCard(doc) : null;
+}
+
 // ── Group operations ─────────────────────────────────────────────────
 
 export class VoteError extends Error {

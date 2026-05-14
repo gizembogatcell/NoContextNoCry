@@ -122,3 +122,17 @@ export async function updateActionMailSent(actionId: string): Promise<void> {
     { $set: { mailSentAt: now, updatedAt: now } },
   );
 }
+
+export async function updateAction(
+  actionId: string,
+  fields: Partial<Pick<Action, "status" | "title" | "assigneeEmail" | "assigneeName" | "deadline">>,
+): Promise<Action | null> {
+  const col = await actionsCollection();
+  const now = new Date().toISOString();
+  const result = await col.findOneAndUpdate(
+    { _id: actionId },
+    { $set: { ...fields, updatedAt: now } },
+    { returnDocument: "after" },
+  );
+  return result ? docToAction(result) : null;
+}

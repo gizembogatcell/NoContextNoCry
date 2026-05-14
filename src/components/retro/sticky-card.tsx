@@ -2,8 +2,7 @@
 
 import { Card as AntCard, Typography } from "antd";
 
-import type { Card, CardColumn, RetroPhase } from "@/types/retro";
-import { VoteButton } from "./vote-button";
+import type { Card, CardColumn } from "@/types/retro";
 
 const { Paragraph } = Typography;
 
@@ -15,7 +14,7 @@ const COLUMN_COLORS: Record<CardColumn, string> = {
 
 type StickyCardProps = {
   card: Card;
-  phase: RetroPhase;
+  phase: string;
   sessionId: string;
   retroId: string;
   getIdToken: () => Promise<string | null>;
@@ -24,15 +23,8 @@ type StickyCardProps = {
 
 export function StickyCard({
   card,
-  phase,
-  sessionId,
-  retroId,
-  getIdToken,
-  onVoteToggled,
 }: StickyCardProps) {
   const borderColor = COLUMN_COLORS[card.column];
-  const isVotePhase = phase === "vote";
-  const hasVoted = card.votedBy.includes(sessionId);
 
   return (
     <AntCard
@@ -51,19 +43,6 @@ export function StickyCard({
         >
           Grup: {card.groupTitle}
         </Paragraph>
-      )}
-      {isVotePhase && (
-        <div style={{ marginTop: 8 }}>
-          <VoteButton
-            retroId={retroId}
-            cardId={card._id}
-            sessionId={sessionId}
-            votes={card.votes}
-            hasVoted={hasVoted}
-            getIdToken={getIdToken}
-            onVoteToggled={onVoteToggled}
-          />
-        </div>
       )}
     </AntCard>
   );

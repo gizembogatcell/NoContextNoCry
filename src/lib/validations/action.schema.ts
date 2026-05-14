@@ -16,3 +16,13 @@ export const createActionSchema = z.object({
 });
 
 export type CreateActionInput = z.infer<typeof createActionSchema>;
+
+export const updateActionSchema = z.object({
+  status: z.enum(["open", "done", "in_progress", "failed"]).optional(),
+  title: z.string().min(1).max(2000).optional(),
+  assigneeEmail: z.string().email().optional(),
+  assigneeName: z.string().max(200).nullable().optional(),
+  deadline: z.string().datetime().nullable().optional(),
+});
+
+export type UpdateActionInput = z.infer<typeof updateActionSchema>;

@@ -2,8 +2,13 @@ import type { NextRequest } from "next/server";
 
 import { requireUser, UnauthorizedError } from "@/lib/api/auth";
 import { ok, fail, failFromUnknown } from "@/lib/api/response";
-import { voteSchema } from "@/lib/validations/retro.schema";
-import { toggleVote } from "@/services/retro.service";
+import { getCardById, castVote, VoteError } from "@/services/retro.service";
+
+import { z } from "zod";
+
+const bodySchema = z.object({
+  sessionId: z.string().min(1),
+});
 
 export async function POST(
   request: NextRequest,
@@ -11,25 +16,32 @@ export async function POST(
 ) {
   try {
     await requireUser(request);
-    const { id, cardId } = await params;
+    const { id: retroId, cardId } = await params;
     const json: unknown = await request.json().catch(() => ({}));
-    const parsed = voteSchema.safeParse(json);
+    const parsed = bodySchema.safeParse(json);
 
     if (!parsed.success) {
       return failFromUnknown(parsed.error);
     }
 
-    const { sessionId } = parsed.data;
-    const card = await toggleVote(id, cardId, sessionId);
+    const card = await getCardById(retroId, cardId);
+    if (!card || !card.groupId) {
+      return fail(
+        { message: "Card not found or not grouped", code: "NOT_FOUND" },
+        { status: 404 },
+      );
+    }
 
-    return ok(card);
+    const vote = await castVote(retroId, card.groupId, parsed.data.sessionId);
+
+    return ok(vote);
   } catch (err) {
     if (err instanceof UnauthorizedError) {
       return fail({ message: err.message, code: err.code }, { status: 401 });
     }
-    if (err instanceof Error) {
+    if (err instanceof VoteError) {
       return fail(
-        { message: err.message, code: "BAD_REQUEST" },
+        { message: err.message, code: err.code },
         { status: 400 },
       );
     }

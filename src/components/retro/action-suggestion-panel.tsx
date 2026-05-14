@@ -108,8 +108,8 @@ export function ActionSuggestionPanel({
       const emptyDrafts: ActionDraft[] = groups.map((g) => ({
         groupId: g.groupId,
         groupTitle: g.title,
-        voteCount: g.voteCount,
-        suggestedAction: "",
+        votes: g.voteCount,
+        suggestedText: "",
         assigneeEmail: "",
         assigneeName: "",
         deadline: null,
@@ -140,7 +140,7 @@ export function ActionSuggestionPanel({
         message.warning("Lütfen bir sahip e-postası girin");
         return;
       }
-      if (!draft.suggestedAction.trim()) {
+      if (!draft.suggestedText.trim()) {
         message.warning("Lütfen aksiyon metnini doldurun");
         return;
       }
@@ -161,7 +161,7 @@ export function ActionSuggestionPanel({
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            title: draft.suggestedAction,
+            title: draft.suggestedText,
             assigneeEmail: draft.assigneeEmail,
             assigneeName: draft.assigneeName || null,
             deadline: draft.deadline,
@@ -254,7 +254,7 @@ export function ActionSuggestionPanel({
           title={
             <Space>
               <Tag color="blue">{draft.groupTitle}</Tag>
-              <Tag>{draft.voteCount} oy</Tag>
+              <Tag>{draft.votes} oy</Tag>
               {draft.isApproved && <Tag color="success">Onaylandı</Tag>}
             </Space>
           }
@@ -267,10 +267,10 @@ export function ActionSuggestionPanel({
         >
           <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
             <TextArea
-              value={draft.suggestedAction}
+              value={draft.suggestedText}
               onChange={(e) =>
                 updateDraft(draft.groupId, {
-                  suggestedAction: e.target.value,
+                  suggestedText: e.target.value,
                 })
               }
               placeholder="Aksiyon metnini girin..."

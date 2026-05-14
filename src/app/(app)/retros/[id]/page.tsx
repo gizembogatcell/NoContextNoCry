@@ -34,13 +34,12 @@ function extractGroups(cards: Card[]) {
     if (!card.groupId || !card.groupTitle) continue;
     const existing = groupMap.get(card.groupId);
     if (existing) {
-      existing.cardIds.push(card._id);
-      existing.voteCount += card.votes;
+      existing.cardIds.push(card.id);
     } else {
       groupMap.set(card.groupId, {
         title: card.groupTitle,
-        cardIds: [card._id],
-        voteCount: card.votes,
+        cardIds: [card.id],
+        voteCount: 0,
       });
     }
   }

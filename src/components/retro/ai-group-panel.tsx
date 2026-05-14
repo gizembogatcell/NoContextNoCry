@@ -4,9 +4,15 @@ import { useState } from "react";
 import { Button, Card as AntCard, Flex, Input, Typography, Spin, Alert, message, Tag } from "antd";
 import { RobotOutlined, EditOutlined, CheckOutlined } from "@ant-design/icons";
 
-import type { Card, AiGroup } from "@/types/retro";
+import type { Card } from "@/types/retro";
 
 const { Title, Paragraph, Text } = Typography;
+
+type LocalGroup = {
+  groupId: string;
+  title: string;
+  cardIds: string[];
+};
 
 type AiGroupPanelProps = {
   retroId: string;
@@ -23,7 +29,7 @@ export function AiGroupPanel({
   getIdToken,
   onGroupsApplied,
 }: AiGroupPanelProps) {
-  const [groups, setGroups] = useState<AiGroup[]>([]);
+  const [groups, setGroups] = useState<LocalGroup[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [editingGroupId, setEditingGroupId] = useState<string | null>(null);
@@ -58,8 +64,12 @@ export function AiGroupPanel({
         throw new Error(body?.error?.message ?? "AI gruplama başarısız oldu");
       }
 
-      const body = await res.json() as { data: AiGroup[] };
-      setGroups(body.data);
+      const body = await res.json() as {
+        data: Array<{ id: string; title: string; cardIds: string[] }>;
+      };
+      setGroups(
+        body.data.map((g) => ({ groupId: g.id, title: g.title, cardIds: g.cardIds })),
+      );
       setHasGrouped(true);
       onGroupsApplied();
       message.success("Notlar AI ile gruplandı!");
@@ -159,7 +169,7 @@ export function AiGroupPanel({
           }
         >
           {group.cardIds.map((cardId) => {
-            const card = cards.find((c) => c._id === cardId);
+            const card = cards.find((c) => c.id === cardId);
             if (!card) return null;
             return (
               <Paragraph key={cardId} style={{ margin: "4px 0" }}>
@@ -173,20 +183,20 @@ export function AiGroupPanel({
   );
 }
 
-function extractGroupsFromCards(cards: Card[]): AiGroup[] {
-  const groupMap = new Map<string, AiGroup>();
+function extractGroupsFromCards(cards: Card[]): LocalGroup[] {
+  const groupMap = new Map<string, LocalGroup>();
 
   for (const card of cards) {
     if (!card.groupId || !card.groupTitle) continue;
 
     const existing = groupMap.get(card.groupId);
     if (existing) {
-      existing.cardIds.push(card._id);
+      existing.cardIds.push(card.id);
     } else {
       groupMap.set(card.groupId, {
         groupId: card.groupId,
         title: card.groupTitle,
-        cardIds: [card._id],
+        cardIds: [card.id],
       });
     }
   }

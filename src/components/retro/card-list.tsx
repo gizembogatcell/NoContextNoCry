@@ -26,10 +26,9 @@ export function CardList({
 }: CardListProps) {
   const filtered = cards
     .filter((c) => c.column === column)
-    .sort((a, b) => {
-      if (phase === "vote") return b.votes - a.votes;
-      return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
-    });
+    .sort((a, b) =>
+      new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
+    );
 
   if (filtered.length === 0) {
     return <Empty description="Henüz not yok" image={Empty.PRESENTED_IMAGE_SIMPLE} />;
@@ -39,7 +38,7 @@ export function CardList({
     <div>
       {filtered.map((card) => (
         <StickyCard
-          key={card._id}
+          key={card.id}
           card={card}
           phase={phase}
           sessionId={sessionId}

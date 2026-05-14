@@ -95,9 +95,9 @@ export default function RetrosListPage() {
             const phaseInfo = PHASE_LABELS[retro.phase];
             return (
               <Card
-                key={retro._id}
+                key={retro.id}
                 hoverable
-                onClick={() => router.push(`/retros/${retro._id}`)}
+                onClick={() => router.push(`/retros/${retro.id}`)}
                 style={{ cursor: "pointer" }}
               >
                 <Flex justify="space-between" align="center">
