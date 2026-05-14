@@ -20,6 +20,22 @@ import {
 import { getFirebaseAuth } from "@/lib/firebase/client";
 import { readFirebasePublicConfig } from "@/lib/env";
 
+const DEV_BYPASS_AUTH =
+  process.env.NODE_ENV === "development" &&
+  process.env.NEXT_PUBLIC_DEV_BYPASS_AUTH === "true";
+
+const MOCK_USER = DEV_BYPASS_AUTH
+  ? ({
+      uid: "dev-bypass-user",
+      email: "dev@localhost",
+      displayName: "Dev User",
+      photoURL: null,
+      emailVerified: true,
+      isAnonymous: false,
+      getIdToken: async () => "dev-bypass-token",
+    } as unknown as User)
+  : null;
+
 type AuthContextValue = {
   user: User | null;
   loading: boolean;
@@ -32,12 +48,15 @@ type AuthContextValue = {
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState<User | null>(MOCK_USER);
+  const [loading, setLoading] = useState(!DEV_BYPASS_AUTH);
 
-  const firebaseConfigured = !!readFirebasePublicConfig()?.apiKey;
+  const firebaseConfigured =
+    DEV_BYPASS_AUTH || !!readFirebasePublicConfig()?.apiKey;
 
   useEffect(() => {
+    if (DEV_BYPASS_AUTH) return;
+
     const auth = getFirebaseAuth();
     if (!auth) {
       queueMicrotask(() => {
@@ -56,6 +75,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const signOut = useCallback(async () => {
+    if (DEV_BYPASS_AUTH) return;
     const auth = getFirebaseAuth();
     if (!auth) {
       return;
@@ -64,6 +84,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const signInWithGoogle = useCallback(async () => {
+    if (DEV_BYPASS_AUTH) return MOCK_USER!;
     const auth = getFirebaseAuth();
     if (!auth) {
       throw new Error(
@@ -78,6 +99,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const getIdToken = useCallback(
     async (forceRefresh = false) => {
+      if (DEV_BYPASS_AUTH) return "dev-bypass-token";
       if (!user) return null;
       return user.getIdToken(forceRefresh);
     },
