@@ -1,0 +1,98 @@
+docs/stories/7.pre-retro-summary-mail.story.md
+  s_47d4a8467f9e9e::t_61dbc0dbbaa710 31-33,35-38,40-42
+  s_47d4a8467f9e9e::t_5f2cbde070e321 3
+  s_47d4a8467f9e9e::t_cc005c00bac409 75-79
+src/templates/pre-retro-summary.html.ts
+  s_47d4a8467f9e9e::t_edb6b90d51206d 1-119
+docs/stories/5.jira-action-delivery.story.md
+  s_63bbcf8cd28597::t_e34f2df277542d 3
+src/app/api/actions/summary/route.ts
+  s_47d4a8467f9e9e::t_067284254a28c7 1-28
+src/app/api/actions/carry-over/route.ts
+  s_47d4a8467f9e9e::t_60c109afe0b0cb 1-18
+src/app/(app)/retros/new/page.tsx
+  s_47d4a8467f9e9e::t_1d6b4b3ab0388d 9
+  s_47d4a8467f9e9e::t_c753aaf57bc821 3,6,14,18,21,23,32-35,43-70,91-93,109-140,142-146,148-156,158-172,174-202
+  s_47d4a8467f9e9e::t_9fe366bcf0bcd2 29
+  s_47d4a8467f9e9e::t_47db43e3375666 97,99
+src/app/api/actions/magic/[token]/route.ts
+  s_47d4a8467f9e9e::t_c91cc1d5f71d41 1-119
+src/components/retro/action-suggestion-panel.tsx
+  s_47d4a8467f9e9e::t_3a426484b562cf 341
+  s_47d4a8467f9e9e::t_8e2d69b84411dc 33
+src/app/api/retros/route.ts
+  s_47d4a8467f9e9e::t_1d45a6477a4727 7-10,23-27,37-81
+src/app/(app)/dashboard/page.tsx
+  s_47d4a8467f9e9e::t_37d5467351bcc8 29
+  s_47d4a8467f9e9e::t_a068f803a9072e 4-24,27,31-43,47,49,54,62,70-71,75-77,79,86,92-98,100,102-104,107-113,115-240
+src/app/(app)/actions/page.tsx
+  s_47d4a8467f9e9e::t_94bb4beb2c36f4 1-219
+src/app/(auth)/login/page.tsx
+  s_00ffefa06e2c82::t_ef6aacc8902a2f 133-134
+  s_00ffefa06e2c82::t_2ade1b60c56de0 17,22-24,33,38-64,182-192
+src/contexts/auth-context.tsx
+  s_00ffefa06e2c82::t_87e5b01016484d 54
+  s_00ffefa06e2c82::t_0749a8bcec0bbd 111-115
+  s_00ffefa06e2c82::t_24591ecc8a1c08 39-48
+  s_00ffefa06e2c82::t_3bf405de2246c8 131,135
+src/lib/validations/action.schema.ts
+  s_47d4a8467f9e9e::t_62fe4052110fb4 13
+  s_47d4a8467f9e9e::t_2393bee8b04a70 27-34
+src/app/action-update/[token]/page.tsx
+  s_47d4a8467f9e9e::t_5a30878db9bba5 1-38,68-79,82-89,92-97,100-103,105-108,110-112,114,116-117,120-122,137-302,304-444
+  s_47d4a8467f9e9e::t_afd065e140c4c0 39-67,80-81,90-91,98-99,104,109,113,115,118-119,123-136,303
+src/templates/deadline-check.html.ts
+  s_47d4a8467f9e9e::t_89430e80c180aa 1-86
+src/types/action.ts
+  s_47d4a8467f9e9e::t_361c647191307d 2
+docs/stories/8.retro-memory-screen.story.md
+  s_47d4a8467f9e9e::t_cf47c2ba31a4b2 3
+  s_47d4a8467f9e9e::t_b3ae83a6067251 79-84
+  s_47d4a8467f9e9e::t_8a3c37709bdaa4 31-35,37-39,41-43,45-46
+src/services/action.service.ts
+  s_47d4a8467f9e9e::t_c30c6ce9a4f86b 6,8
+  s_47d4a8467f9e9e::t_21e3d0e3e905b6 137-225
+src/lib/validations/retro.schema.ts
+  s_47d4a8467f9e9e::t_7df20b28086faa 7
+src/services/mail-content.ts
+  s_47d4a8467f9e9e::t_593378cb98fbde 57-111
+src/app/api/cron/deadline-check/route.ts
+  s_47d4a8467f9e9e::t_c4fb6a2531fd04 2-42
+  s_47d4a8467f9e9e::t_8c8c2758c7d4cb 1
+docs/stories/6.deadline-status-mail.story.md
+  s_47d4a8467f9e9e::t_b9187e03d50a0a 82-87
+  s_47d4a8467f9e9e::t_84453b8c234ee5 33-35,37-40,42-46,48-50
+  s_47d4a8467f9e9e::t_7e811bd2abce7e 3
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.8",
+  "base_commit_sha": "576498ca73c10ae2e47a2927ee7208e83f94ecd7",
+  "prompts": {},
+  "sessions": {
+    "s_00ffefa06e2c82": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "a4cfa74e-a8c9-4bf5-ba09-62b69ad94673",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "TCGBOGA <gizem.boga@turkcell.com.tr>"
+    },
+    "s_47d4a8467f9e9e": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "913a7234-6a36-46ef-9b52-b3f586a31b2f",
+        "model": "claude-4.6-opus-high-thinking"
+      },
+      "human_author": "TCGBOGA <gizem.boga@turkcell.com.tr>"
+    },
+    "s_63bbcf8cd28597": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "d8ddaa32-022e-46ba-8a7c-9d25c18113b3",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "TCGBOGA <gizem.boga@turkcell.com.tr>"
+    }
+  }
+}
