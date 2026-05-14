@@ -1,0 +1,24 @@
+src/app/action-update/[token]/page.tsx
+  s_239184dd05450e::t_b66bb09a40fa3e 142,145-146
+  s_239184dd05450e::t_a360514ac0b85f 103
+  s_239184dd05450e::t_e012185af7036b 42
+  s_239184dd05450e::t_1926de6fb30bdb 177,181
+src/services/mail-content.ts
+  s_239184dd05450e::t_95995c7f116add 137,149-158
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.8",
+  "base_commit_sha": "7571c70ae3a70f21771bb4c0092d3ddd59eaa830",
+  "prompts": {},
+  "sessions": {
+    "s_239184dd05450e": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "889c4ba7-b303-4bdc-9653-befa68b13656",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "TCGBOGA <gizem.boga@turkcell.com.tr>"
+    }
+  }
+}
