@@ -1,0 +1,37 @@
+src/lib/validations/__tests__/retro.schema.test.ts
+  s_f006b8f159db72::t_6bd0f649c3da26 1-146
+src/app/api/retros/[id]/votes/route.ts
+  s_f006b8f159db72::t_6bd0f649c3da26 1-62
+docs/architecture.md
+  s_f006b8f159db72::t_6bd0f649c3da26 131-142,152,213-219
+src/services/__tests__/action.service.test.ts
+  s_f006b8f159db72::t_6bd0f649c3da26 1-201
+src/app/api/retros/[id]/groups/route.ts
+  s_f006b8f159db72::t_6bd0f649c3da26 1-54
+.env.local.example
+  s_f006b8f159db72::t_6bd0f649c3da26 34-43
+src/services/__tests__/retro-ai.service.test.ts
+  s_f006b8f159db72::t_6bd0f649c3da26 1-240
+src/services/__tests__/voting.test.ts
+  s_f006b8f159db72::t_6bd0f649c3da26 1-222
+src/services/__tests__/ai-grouping.test.ts
+  s_f006b8f159db72::t_6bd0f649c3da26 1-147
+src/services/__tests__/retro.service.test.ts
+  s_f006b8f159db72::t_6bd0f649c3da26 1-332
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.8",
+  "base_commit_sha": "7dd150c5c8206a2de3760150d71827a3377c0c0a",
+  "prompts": {},
+  "sessions": {
+    "s_f006b8f159db72": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "0413d72c-8691-44b1-a407-8a16f6baf853",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "TCGBOGA <gizem.boga@turkcell.com.tr>"
+    }
+  }
+}
