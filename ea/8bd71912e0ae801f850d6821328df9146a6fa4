@@ -1,0 +1,19 @@
+docs/architecture.md
+  s_d72a0a3d7808f0::t_5c7504e4088b1c 259-260,262,266,268-269,271,274,276,280,282-285,290-313
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.8",
+  "base_commit_sha": "ea8bd71912e0ae801f850d6821328df9146a6fa4",
+  "prompts": {},
+  "sessions": {
+    "s_d72a0a3d7808f0": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "9b494900-7707-49c7-a263-3f45a92f283e",
+        "model": "claude-sonnet-4-6"
+      },
+      "human_author": "TCGBOGA <gizem.boga@turkcell.com.tr>"
+    }
+  }
+}
