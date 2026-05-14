@@ -122,10 +122,20 @@ type Card = {
   column: CardColumn;
   content: string;
   sessionId: string;          // anonim katılımcı ID
-  votes: number;
-  votedBy: string[];          // sessionId listesi — çift oyu önler
   groupId: string | null;
   groupTitle: string | null;
+  createdAt: string;
+};
+```
+
+### `votes`
+
+```typescript
+type Vote = {
+  _id: string;
+  retroId: string;
+  groupId: string;            // grup düzeyinde oylama
+  sessionId: string;          // anonim katılımcı ID
   createdAt: string;
 };
 ```
@@ -139,7 +149,7 @@ type ActionType = "mail" | "jira";
 type Action = {
   _id: string;
   retroId: string;
-  cardId: string | null;
+  groupId: string | null;
   title: string;
   assigneeEmail: string;
   assigneeName: string | null;
@@ -200,7 +210,13 @@ Tüm route'lar `requireUser()` ile korunur (magic link route'ları hariç).
 |--------|------|----------|
 | POST | `/api/retros/[id]/cards` | Kart ekle (column, content, sessionId) |
 | GET | `/api/retros/[id]/cards` | Kartları listele (phase'e göre filtrelenmiş) |
-| POST | `/api/retros/[id]/cards/[cardId]/vote` | Oy toggle (sessionId ile) |
+
+### Votes (Grup Oylama)
+
+| Method | Path | Açıklama |
+|--------|------|----------|
+| POST | `/api/retros/[id]/votes` | Grup oyu kaydet (groupId + sessionId, max votesPerUser) |
+| GET | `/api/retros/[id]/votes` | Session oy durumu (votesUsed, votesRemaining) |
 
 ### AI
 
