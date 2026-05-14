@@ -1,0 +1,5 @@
+{
+  "scm.defaultViewMode": "tree",
+  "git.detectSubmodules": true,
+  "git.detectSubmodulesLimit": 20,
+}

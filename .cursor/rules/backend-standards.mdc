@@ -1,0 +1,49 @@
+---
+description: Applies production standards to Next.js API routes and backend services
+globs: ["app/api/**/*.ts", "services/**/*.ts", "lib/validations/**/*.ts"]
+---
+
+# Production TypeScript & Next.js Backend Standards
+
+You are a Senior Fullstack Engineer. Follow these architectural patterns for all Node.js and Next.js development.
+
+## 1. Architectural Layers
+
+- **Route Handlers (`app/api/`)**: Handle HTTP concerns (status codes, request parsing).
+- **Services (`@/services/`)**: Contain business logic and database interactions. API routes MUST call services.
+- **Validation (`@/lib/validations/`)**: Use Zod for all input/output schemas.
+- **Types (`@/types/`)**: Shared TypeScript interfaces.
+
+## 2. API Design Patterns
+
+- **Route Handlers**: Use `export async function GET/POST/PATCH/DELETE(request: NextRequest)`.
+- **Validation**: Every POST/PATCH/PUT request must be validated at the entry point using Zod's `.parse()` or `.safeParse()`.
+- **Type Safety**: Use `z.infer<typeof Schema>` to keep frontend and backend types synchronized.
+- **Database**: Use the centralized MongoDB client in `@/lib/mongodb/client.ts`. Authenticate requests by verifying the Firebase ID token with `@/lib/api/auth.ts`.
+
+## 3. Standardized Response Format
+
+- All responses must be JSON.
+- Success: `NextResponse.json({ data }, { status: 200 })`
+- Error: `NextResponse.json({ error: { message: string, code: string, details?: any } }, { status: number })`
+- Use the helpers in `@/lib/api/response.ts` (`ok`, `fail`) to enforce the shape.
+
+## 4. Error Handling Protocol
+
+- Use `try/catch` blocks in all Route Handlers.
+- Log errors to the console in development; include structured error codes for the frontend.
+- Handle common Zod errors to return 400 Bad Request with field-specific details.
+
+## 5. Code Style
+
+- Use Early Returns to reduce nesting.
+- Explicitly define return types for all Service functions.
+- Use Absolute Imports (`@/components`, `@/lib`, etc.).
+- Maintain idempotency for PUT and DELETE requests.
+
+## 6. Implementation Template
+
+When asked to create an endpoint, implement it in two parts:
+
+1. **The Service**: Logic located in `services/[feature].service.ts`.
+2. **The Route**: The HTTP wrapper in `app/api/[feature]/route.ts`.

@@ -1,0 +1,95 @@
+/**
+ * Paste into your app root (e.g. _app.tsx / main.tsx) and adjust tokens.
+ * Generated from Ant Design theme tooling — treat as a starting point, not production gospel.
+ */
+import type { ReactNode } from "react";
+import { ConfigProvider } from "antd";
+
+export function AppWithBrandTheme({ children }: { children: ReactNode }) {
+  return (
+    <ConfigProvider
+      theme={{
+        token: {
+          colorPrimary: "#ff0000",
+          colorSuccess: "#00a950",
+          colorWarning: "#ff9c00",
+          colorError: "#e60012",
+          colorInfo: "#0071ce",
+          colorTextBase: "#1a1a1a",
+          colorBgBase: "#ffffff",
+          colorPrimaryBg: "#ffe6e6",
+          colorPrimaryBgHover: "#ffcccc",
+          colorPrimaryBorder: "#ff9999",
+          colorPrimaryBorderHover: "#ff6666",
+          colorPrimaryHover: "#cc0000",
+          colorPrimaryActive: "#990000",
+          colorPrimaryText: "#ff0000",
+          colorPrimaryTextHover: "#cc0000",
+          colorPrimaryTextActive: "#990000",
+          colorSuccessBg: "#e6fff0",
+          colorSuccessBgHover: "#ccffe0",
+          colorSuccessBorder: "#99ffbf",
+          colorSuccessBorderHover: "#66ff9f",
+          colorSuccessHover: "#008f40",
+          colorSuccessActive: "#006633",
+          colorSuccessText: "#00a950",
+          colorSuccessTextHover: "#008f40",
+          colorSuccessTextActive: "#006633",
+          colorWarningBg: "#fff5e6",
+          colorWarningBgHover: "#ffeacc",
+          colorWarningBorder: "#ffd699",
+          colorWarningBorderHover: "#ffc266",
+          colorWarningHover: "#cc7a00",
+          colorWarningActive: "#995c00",
+          colorWarningText: "#ff9c00",
+          colorWarningTextHover: "#cc7a00",
+          colorWarningTextActive: "#995c00",
+          colorErrorBg: "#ffe6e6",
+          colorErrorBgHover: "#ffcccc",
+          colorErrorBorder: "#ff9999",
+          colorErrorBorderHover: "#ff6666",
+          colorErrorHover: "#b3000f",
+          colorErrorActive: "#80000a",
+          colorErrorText: "#e60012",
+          colorErrorTextHover: "#b3000f",
+          colorErrorTextActive: "#80000a",
+          colorInfoBg: "#e6f2ff",
+          colorInfoBgHover: "#cce5ff",
+          colorInfoBorder: "#99ccff",
+          colorInfoBorderHover: "#66b3ff",
+          colorInfoHover: "#005ba3",
+          colorInfoActive: "#004080",
+          colorInfoText: "#0071ce",
+          colorInfoTextHover: "#005ba3",
+          colorInfoTextActive: "#004080",
+          colorText: "rgba(26, 26, 26, 0.88)",
+          colorTextSecondary: "rgba(26, 26, 26, 0.65)",
+          colorTextTertiary: "rgba(26, 26, 26, 0.45)",
+          colorTextQuaternary: "rgba(26, 26, 26, 0.25)",
+          colorTextDisabled: "rgba(26, 26, 26, 0.25)",
+          colorBgContainer: "#ffffff",
+          colorBgElevated: "#fafafa",
+          colorBgLayout: "#f5f5f5",
+          colorBgSpotlight: "rgba(26, 26, 26, 0.85)",
+          colorBgMask: "rgba(26, 26, 26, 0.45)",
+          colorBorder: "#d9d9d9",
+          colorBorderSecondary: "#f0f0f0",
+          borderRadius: 4,
+          borderRadiusXS: 2,
+          borderRadiusSM: 3,
+          borderRadiusLG: 6,
+          padding: 16,
+          paddingSM: 12,
+          paddingLG: 24,
+          margin: 16,
+          marginSM: 12,
+          marginLG: 24,
+          boxShadow: "0 2px 8px 0 rgba(0, 0, 0, 0.08)",
+          boxShadowSecondary: "0 4px 12px 0 rgba(0, 0, 0, 0.12)",
+        },
+      }}
+    >
+      {children}
+    </ConfigProvider>
+  );
+}

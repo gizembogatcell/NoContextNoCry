@@ -1,0 +1,60 @@
+---
+description: HACKATHON WORKFLOW — core 6-phase sequence, optional browser E2E agent, documentation locations, and project conventions. Always included in every conversation.
+alwaysApply: true
+---
+
+# Hackathon Project Workflow
+
+## Phase Sequence (core)
+
+Follow this order for every hackathon project:
+
+| Phase         | Subagent (`name`)     | Output                                      |
+| ------------- | --------------------- | ------------------------------------------- |
+| 1. BRAINSTORM | `#1 brainstorm`       | `docs/brainstorm-notes.md`                  |
+| 2. ANALYST    | `#2 analyst`          | `docs/brief.md` + `docs/stories/*.story.md` |
+| 3. ARCHITECT  | `#3 architect`        | `docs/architecture.md`                      |
+| 4. FE-DEV     | `#4 fe-dev`           | Frontend implementation                     |
+| 5. BE-DEV     | `#5 be-dev`           | Backend/API implementation                  |
+| 6. TESTER     | `#6 tester`           | Validated stories (code/test evidence), bug reports |
+
+### Optional — browser E2E (out of band)
+
+| When needed | Subagent (`name`)    | Role |
+| ----------- | -------------------- | ---- |
+| Playwright / headed UI | `#7 browser-e2e` | Run `e2e/`, headed Chromium; **does not** replace #6 for lint/unit AC sign-off |
+
+> **#4 fe-dev** and **#5 be-dev** can work in parallel once **#3 architect** is complete.
+
+## Documentation Locations
+
+| Document         | Path                                | Created By          |
+| ---------------- | ----------------------------------- | ------------------- |
+| Brainstorm Notes | `docs/brainstorm-notes.md`          | #1 brainstorm       |
+| Project Brief    | `docs/brief.md`                     | #2 analyst          |
+| Architecture     | `docs/architecture.md`              | #3 architect        |
+| User Stories     | `docs/stories/{n}.{title}.story.md` | #2 analyst / sm     |
+
+## Core Conventions
+
+- All subagents read `docs/brief.md` before starting their phase
+- **#4 fe-dev** must follow `.cursor/rules/02-fe-component-standards.mdc` for React/TypeScript UI (in addition to `docs/architecture.md`)
+- Stories must be `Approved` status before dev subagents implement them
+- Always present options as numbered lists
+- Use `*help` on activation to show available commands
+- Prefix all agent commands with `*`
+
+## Activating a Role (Subagents)
+
+Personas live in `.cursor/agents/01-…07-*.md`. Core pipeline: **`#1`** … **`#6`**. **`#7 browser-e2e`** is **optional** (Playwright / headed browser only).
+
+- **#1 brainstorm** — ideation → `docs/brainstorm-notes.md`
+- **#2 analyst** — brief + stories
+- **#3 architect** — `docs/architecture.md`
+- **#4 fe-dev** / **#5 be-dev** — implementation (often parallel)
+- **#6 tester** — lint, unit/integration, AC vs **test evidence**, bug reports (**not** Playwright)
+- **#7 browser-e2e** — Playwright E2E, headed Chromium (`*e2e`, `*smoke`) when you need a real browser
+
+You can also say e.g. “act as #2 analyst”; the model should follow the matching subagent file.
+
+**These subagents do not auto-spawn each other** — after `*handoff`, **you** start the next numbered subagent in Cursor.

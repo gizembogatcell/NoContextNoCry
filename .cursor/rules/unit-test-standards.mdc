@@ -1,0 +1,57 @@
+---
+description: Vitest unit test standards using Arrange Act Assert
+globs: "**/*.{test,spec}.{ts,tsx}"
+alwaysApply: false
+---
+
+# Unit Test Standards
+
+Use Vitest for unit tests and structure every test with the AAA pattern:
+
+```text
+Arrange -> Act -> Assert
+```
+
+## Rules
+
+- Use `describe`, `it`, `expect`, `vi`, `beforeEach`, and `afterEach` from `vitest`.
+- Name tests as `should [expected behavior] when [condition]`.
+- Keep each test focused on one observable behavior.
+- Prefer testing public behavior over implementation details.
+- Mock only external boundaries such as network, storage, timers, Firebase, or browser APIs.
+- Reset or restore mocks between tests when state can leak.
+- Avoid snapshot tests unless the rendered output is intentionally stable and small.
+
+## AAA Pattern
+
+```typescript
+it('should return the user name when profile exists', () => {
+  // Arrange
+  const profile = { name: 'Ada' };
+
+  // Act
+  const result = getUserName(profile);
+
+  // Assert
+  expect(result).toBe('Ada');
+});
+```
+
+## Vitest Example
+
+```typescript
+import { describe, expect, it, vi } from 'vitest';
+
+describe('getUserName', () => {
+  it('should return fallback name when profile is missing', () => {
+    // Arrange
+    const profile = undefined;
+
+    // Act
+    const result = getUserName(profile);
+
+    // Assert
+    expect(result).toBe('Guest');
+  });
+});
+```

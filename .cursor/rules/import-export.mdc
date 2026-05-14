@@ -1,0 +1,32 @@
+---
+description: Named exports, import style, and module boundary conventions for JS/TS. Use when adding or refactoring imports/exports.
+globs: "**/*.ts,**/*.tsx,**/*.js,**/*.jsx"
+alwaysApply: true
+---
+
+# Import & export standards
+
+Applies to application source (`**/*.{js,jsx,ts,tsx}`). Framework entry files (Next.js `page.tsx`, `layout.tsx`, etc.) follow routing rules first; align exports with those files when required.
+
+---
+
+## Exports
+
+- Prefer **named (direct) exports** (`export const`, `export function`, `export type`, `export { x }`).
+- Avoid `export default` except where a dependency or framework requires it (legacy APIs, routing).
+- When a file has a single primary symbol, name the export to match the file (e.g. `UserCard` in `UserCard.tsx`).
+
+---
+
+## Imports
+
+- Use **named imports with braces**: `import { thing } from './thing';`
+- Do not rename on import unless there is a **naming collision** with another binding in the same file.
+- **Order groups** (blank line between groups): (1) Node/built-ins, (2) external packages, (3) internal / relative modules.
+
+---
+
+## Exceptions
+
+- **Next.js App Router**: `page.tsx`, `layout.tsx`, `loading.tsx`, `error.tsx`, `not-found.tsx`, `default.tsx`, and similar may use `default` exports when the framework expects them.
+- **Third-party** patterns that require a default export may keep `export default` for that integration surface only.

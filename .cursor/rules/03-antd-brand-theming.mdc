@@ -1,0 +1,28 @@
+---
+description: Ant Design 6 brand theme via ConfigProvider (token map). Use when skinning UI, editing AppProviders, or theming.
+globs: "**/providers.tsx,**/theme/antd-theme.ts,styling-lib/**"
+alwaysApply: false
+---
+
+# Ant Design — brand theme (`ConfigProvider`)
+
+## Source of truth
+
+- **Token map**: `src/theme/antd-theme.ts` — edit `brandThemeToken` and `brandTheme` here only. This is the single source of truth for all theme tokens and component overrides.
+- **Design specs (colors / type / elevation)**: `styling-lib/*.txt` — markdown tables for handoff; keep in sync when changing tokens.
+- **Wiring**: `src/app/providers.tsx` passes the resolved theme to the single root `ConfigProvider`. Do not add another root `ConfigProvider` unless nesting is intentional.
+
+## Pattern
+
+- Use `ConfigProvider` with `theme={{ token: { ... }, components: { ... } }}`.
+- For each semantic color (**primary**, **success**, **warning**, **error**, **info**), keep **base** plus **bg / bgHover / border / borderHover / hover / active / text / textHover / textActive** in sync so states (hover, active, filled buttons) stay coherent.
+- Derive **text** colors from `colorTextBase` via `rgba(…, opacity)` for **secondary / tertiary / quaternary / disabled** so they track the base.
+- Set **layout** tokens: `colorBgContainer`, `colorBgElevated`, `colorBgLayout`, `colorBgSpotlight`, `colorBgMask`, `colorBorder`, `colorBorderSecondary`.
+- Set **shape & density**: `borderRadius*`, `padding*`, `margin*`, `boxShadow*`.
+
+## Hygiene
+
+- Do not duplicate the token object — all tokens live in `src/theme/antd-theme.ts`. Do not create separate `brand-tokens.ts` files.
+- To add a new theme variant, add an `AppTheme` entry to `builtInThemes` in `antd-theme.ts` and select it via `themeKey` prop on `AppProviders`.
+- Generated / starter values are not gospel — validate contrast (WCAG) for real brand colors.
+- With Next.js App Router, keep Firebase and other clients **inside** the existing provider tree; only change the `ConfigProvider` `theme` prop unless architecture says otherwise.

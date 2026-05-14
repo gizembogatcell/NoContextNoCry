@@ -1,0 +1,62 @@
+---
+description: Coding standards and best practices. Apply when writing, reviewing, or refactoring source code.
+globs: src/**
+alwaysApply: true
+---
+
+# Coding Standards
+
+## General Principles
+
+- **SOLID**: Single responsibility, open/closed, Liskov substitution, interface segregation, dependency inversion
+- **DRY**: Extract reusable logic — never duplicate business logic
+- **KISS**: Prefer clarity over cleverness — the next developer is you at 3am during the hackathon
+- **YAGNI**: Do not build what is not in the current story
+
+## Naming
+
+- Variables and functions: `camelCase`
+- Classes, types, interfaces: `PascalCase`
+- Constants: `SCREAMING_SNAKE_CASE`
+- Files: `kebab-case.ts`
+- Boolean variables: prefix with `is`, `has`, `can`, `should`
+- Event handlers: prefix with `on` or `handle`
+
+## Functions
+
+- Max 20 lines — extract if longer
+- Single responsibility — one function does one thing
+- Prefer pure functions — avoid hidden side effects
+- Return early on guard conditions (avoid deep nesting)
+
+## Error Handling
+
+- Never silently swallow errors — always log or rethrow
+- Use typed/custom error classes for domain errors
+- Log errors with context: what happened, where, why
+- Surface user-facing errors as meaningful messages — never expose stack traces
+
+## Security (OWASP Essentials)
+
+- **Never** hardcode secrets, tokens, or credentials — use environment variables
+- Validate and sanitize all user input at system boundaries
+- Never expose internal error details to end users
+- Use parameterized queries — no string concatenation in DB queries
+- Set appropriate auth headers, CORS policy, and CSP
+
+## Testing
+
+- Write tests for every acceptance criterion
+- Unit test pure functions and business logic
+- Integration test API endpoints
+- Name tests: `should [expected behavior] when [condition]`
+- Tests must pass before marking a task checkbox `[x]`
+
+## Code Review Checklist (before marking Ready for Review)
+
+- [ ] Meets all acceptance criteria in the story
+- [ ] Tests written and passing
+- [ ] No hardcoded secrets or credentials
+- [ ] Input validation in place
+- [ ] No console.log left in production code
+- [ ] File List in story is updated

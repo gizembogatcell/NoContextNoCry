@@ -1,0 +1,106 @@
+---
+description: React + TypeScript frontend standards for hackathon UI.
+globs: "**/*.tsx,**/*.ts,**/*.jsx,**/*.js"
+alwaysApply: false
+---
+
+# FE — React & TypeScript component standards
+
+`docs/architecture.md` **always wins** for stack-specific choices (routing, data layer, forms, CSS approach). This rule fills gaps when the architecture doc is silent.
+
+---
+
+## Imports & module boundaries
+
+- Use **relative imports** or **aliases** exactly as the architecture doc defines. Do not import across layers the architect marked as forbidden (e.g. UI → server internals).
+- **One primary UI component per file** unless the codebase already uses a different pattern; prefer **`export default`** for that component.
+- For heavier prop models, colocate **`ComponentName.types.ts`** (or `types.ts` in the component folder) instead of bloating the component file.
+
+---
+
+## TypeScript
+
+- Prefer **`type`** over **`interface`** (reserve `interface` for declaration merging / extends patterns only).
+- **Do not use `React.FC`.** Type props explicitly on the function.
+- Use **`??`** for nullish coalescing (not `||` when `0`, `''`, or `false` are valid values).
+- Use **`!!`** or explicit comparisons for boolean coercion when needed.
+- Avoid **`any`**; use `unknown` + narrowing if data shape is uncertain.
+
+---
+
+## Props & components
+
+- **Destructure** props in the function parameters.
+- Use **default parameter values** for optional props so the UI does not depend on `undefined` unless intentional.
+
+---
+
+## Hooks
+
+- **No `async` directly in `useEffect`** — define an inner async function and call it; handle cancellation if needed.
+- **Do not** call hooks conditionally, in loops, or after early returns that skip hook calls.
+- Do **not** put `ref` objects in dependency arrays (use `.current` or stable callbacks per React docs).
+- Use **`useCallback` / `useMemo`** only when justified (child wrapped in `memo`, stable reference required, or expensive pure derivation).
+- Non-hook helpers must **not** be named with the `use` prefix.
+
+---
+
+## Data fetching & async
+
+- Use the **data-fetching approach** named in `docs/architecture.md` (e.g. React Query, SWR, plain `fetch`). If unspecified, use simple `fetch` + `try/catch`.
+- Always **`try/catch`** or **`.catch()`** for async; never swallow errors silently — log or surface per architecture.
+- Prefer **`Promise.all`** for parallel independent requests; **`Promise.allSettled`** when partial failure is acceptable.
+
+---
+
+## Conditionals & readability
+
+- Avoid **nested ternaries**; extract variables or small helpers.
+- Prefer small **lookup objects** over long `switch` / `if` chains when mapping keys → UI.
+- Use **`&&`** for simple conditional render when it improves clarity.
+
+---
+
+## Next.js (only if the project uses Next.js per architecture)
+
+- Prefer **`next/image`** instead of raw `<img>` for optimized images.
+- Treat **dynamic route / query params** as `string | string[] | undefined` — narrow safely (e.g. `Array.isArray(q) ? q[0] : q`).
+- Prefer **`router.pathname`** / framework navigation APIs over manual `window.location` string hacks.
+
+---
+
+## Forms & validation
+
+- Follow the **form library** in `docs/architecture.md` if specified. Otherwise: controlled inputs, validate on submit, show field-level errors accessibly.
+
+---
+
+## Accessibility
+
+- Images: meaningful **`alt`** (empty `alt=""` only for decorative images).
+- Inputs: associated **`<label>`** or `aria-label` / **`aria-describedby`** for error text.
+- **Icon-only buttons**: `aria-label` describing the action.
+- Links that open a new tab: make it obvious (text or **`aria-label`**) per product language.
+
+---
+
+## Styling (generic)
+
+- Follow **CSS approach** in architecture (CSS Modules, Tailwind, etc.). Avoid magic numbers where design tokens exist; keep responsive behavior explicit.
+
+---
+
+## Security & env (FE boundary)
+
+- **Never** hardcode secrets, API keys, or tokens — use **environment variables** as defined in architecture.
+- Do not expose raw stack traces or internal errors in user-visible UI.
+
+---
+
+## Pre–Ready for Review (FE checklist)
+
+- [ ] Matches acceptance criteria and `docs/architecture.md` patterns
+- [ ] Hooks and TypeScript rules above respected
+- [ ] Async paths have error handling
+- [ ] Basic a11y: labels, alt, icon buttons
+- [ ] No stray `console.log` in paths meant for demo/production

@@ -1,0 +1,45 @@
+---
+description: Commit message and git hygiene standards
+alwaysApply: true
+---
+
+# Commit Standards
+
+Use Conventional Commits for all project commits:
+
+```text
+type(scope): short imperative summary
+```
+
+## Types
+
+- `feat`: new user-facing capability
+- `fix`: bug fix or broken behavior
+- `docs`: documentation only
+- `style`: formatting or UI-only polish without behavior change
+- `refactor`: code structure change without behavior change
+- `test`: tests only
+- `chore`: maintenance, config, tooling, dependencies
+- `build`: build system changes
+- `ci`: CI/CD changes
+- `perf`: performance improvement
+- `revert`: revert a previous commit
+
+## Rules
+
+- Keep the summary concise, lowercase after the type, and under 72 characters when possible.
+- Use a scope when it clarifies the area, for example `feat(auth): add login guard`.
+- Make one logical change per commit.
+- Prefer commit messages that explain intent, not implementation detail.
+- Do not commit secrets, credentials, `.env` files, or generated noise.
+- Before committing, check `git status` and review the diff.
+- For meaningful code changes, run the fastest relevant verification available, usually `npm run lint` or targeted tests.
+
+## Examples
+
+```text
+feat(auth): add protected app route
+fix(firebase): handle missing auth config
+docs(readme): document setup steps
+chore(deps): update next config
+```
