@@ -1,0 +1,42 @@
+src/lib/validations/action.schema.ts
+  s_f006b8f159db72::t_51dc60fd8117c1 19-28
+src/app/(app)/retros/page.tsx
+  s_f006b8f159db72::t_3bd7ee92763d96 98,100
+src/components/retro/ai-group-panel.tsx
+  s_f006b8f159db72::t_09fddb054ab383 7,11-16,32,67-72,172,186-187,194,199
+src/services/action.service.ts
+  s_f006b8f159db72::t_1bc143bb717c37 125-138
+src/components/retro/action-suggestion-panel.tsx
+  s_f006b8f159db72::t_c9bfeff79aad2f 143
+  s_f006b8f159db72::t_6e4b92467cc48d 111-112
+  s_f006b8f159db72::t_16fb244d88491b 270,273
+  s_f006b8f159db72::t_3ff1f9f05460df 257
+  s_f006b8f159db72::t_c6ef07e7833fae 164
+src/app/(app)/retros/[id]/page.tsx
+  s_f006b8f159db72::t_9ece40867ad42a 37,41-42
+src/components/retro/sticky-card.tsx
+  s_f006b8f159db72::t_ececb30b7b66a0 5,17
+src/services/retro.service.ts
+  s_f006b8f159db72::t_0a82c67f4590d4 301-309
+src/app/api/retros/[id]/cards/[cardId]/vote/route.ts
+  s_f006b8f159db72::t_044153ee54704e 5-11,21,27-35
+  s_f006b8f159db72::t_793b6276e0e6f9 19,37,42,44
+src/components/retro/card-list.tsx
+  s_f006b8f159db72::t_9970a6b002fce6 29-31,41
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.8",
+  "base_commit_sha": "0f12c70bac8cc3482bfb20ecac9fe776f99ab690",
+  "prompts": {},
+  "sessions": {
+    "s_f006b8f159db72": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "0413d72c-8691-44b1-a407-8a16f6baf853",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "TCGBOGA <gizem.boga@turkcell.com.tr>"
+    }
+  }
+}
