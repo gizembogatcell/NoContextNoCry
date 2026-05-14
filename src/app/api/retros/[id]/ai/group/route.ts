@@ -2,8 +2,12 @@ import type { NextRequest } from "next/server";
 
 import { requireUser, UnauthorizedError } from "@/lib/api/auth";
 import { ok, fail, failFromUnknown } from "@/lib/api/response";
-import { getAllCards, applyAiGroups, getRetroById } from "@/services/retro.service";
-import { groupCardsWithAi } from "@/services/retro-ai.service";
+import { getRetroById, ForbiddenError, saveGroups } from "@/services/retro.service";
+import {
+  groupCardsWithAi,
+  AiGroupingError,
+  AiTimeoutError,
+} from "@/services/retro-ai.service";
 
 export async function POST(
   request: NextRequest,
@@ -22,36 +26,41 @@ export async function POST(
     }
 
     if (retro.createdBy !== decoded.uid) {
-      return fail(
-        { message: "Only the moderator can trigger AI grouping", code: "FORBIDDEN" },
-        { status: 403 },
-      );
+      throw new ForbiddenError();
     }
 
     if (retro.phase !== "vote") {
       return fail(
-        { message: "AI grouping is only available in vote phase", code: "BAD_REQUEST" },
+        { message: "AI grouping is only available during vote phase", code: "PHASE_ERROR" },
         { status: 400 },
       );
     }
 
-    const cards = await getAllCards(id);
-    if (cards.length === 0) {
-      return ok([]);
-    }
+    const groups = await groupCardsWithAi(id);
 
-    const groups = await groupCardsWithAi(cards);
-    await applyAiGroups(id, groups);
+    await saveGroups(
+      id,
+      groups.map((g) => ({ id: g.id, title: g.title, cardIds: g.cardIds })),
+    );
 
-    return ok(groups);
+    return ok(groups, { status: 201 });
   } catch (err) {
     if (err instanceof UnauthorizedError) {
       return fail({ message: err.message, code: err.code }, { status: 401 });
     }
-    if (err instanceof Error && err.message === "AI_TIMEOUT") {
+    if (err instanceof ForbiddenError) {
+      return fail({ message: err.message, code: err.code }, { status: 403 });
+    }
+    if (err instanceof AiTimeoutError) {
       return fail(
-        { message: "AI yanıt süresini aştı. Manuel gruplama yapabilirsiniz.", code: "AI_TIMEOUT" },
+        { message: err.message, code: err.code },
         { status: 504 },
+      );
+    }
+    if (err instanceof AiGroupingError) {
+      return fail(
+        { message: err.message, code: err.code },
+        { status: 502 },
       );
     }
     return failFromUnknown(err);

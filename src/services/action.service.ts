@@ -3,46 +3,80 @@ import crypto from "node:crypto";
 import type { Collection } from "mongodb";
 
 import { getDb } from "@/lib/mongodb/client";
-import { generateMagicToken } from "@/lib/magic-token";
 import type { Action } from "@/types/action";
-import type { CreateActionInput, UpdateActionInput } from "@/lib/validations/action.schema";
+import type { CreateActionInput } from "@/lib/validations/action.schema";
 
-type ActionDoc = Omit<Action, "_id"> & { _id: string };
+// ── MongoDB document type ────────────────────────────────────────────
 
-let cachedCollection: Collection<ActionDoc> | null = null;
+type ActionDoc = Omit<Action, "id"> & { _id: string };
+
+// ── Cached collection ────────────────────────────────────────────────
+
+let cachedActions: Collection<ActionDoc> | null = null;
 
 async function actionsCollection(): Promise<Collection<ActionDoc>> {
-  if (cachedCollection) return cachedCollection;
+  if (cachedActions) return cachedActions;
   const db = await getDb();
-  cachedCollection = db.collection<ActionDoc>("actions");
-  return cachedCollection;
+  cachedActions = db.collection<ActionDoc>("actions");
+  return cachedActions;
 }
+
+// ── Index setup ──────────────────────────────────────────────────────
 
 export async function ensureActionIndexes(): Promise<void> {
   const col = await actionsCollection();
-  await col.createIndex({ retroId: 1, createdAt: -1 });
-  await col.createIndex({ magicToken: 1 }, { sparse: true });
+  await Promise.all([
+    col.createIndex({ retroId: 1, createdAt: -1 }),
+    col.createIndex({ magicToken: 1 }, { sparse: true }),
+    col.createIndex({ assigneeEmail: 1, status: 1 }),
+  ]);
 }
 
+// ── Doc ↔ domain helper ─────────────────────────────────────────────
+
+function docToAction(doc: ActionDoc): Action {
+  const { _id, ...rest } = doc;
+  return { id: _id, ...rest };
+}
+
+// ── Error classes ────────────────────────────────────────────────────
+
+export class ActionCreateError extends Error {
+  readonly code = "ACTION_CREATE_ERROR";
+  constructor(message: string) {
+    super(message);
+  }
+}
+
+// ── CRUD ─────────────────────────────────────────────────────────────
+
+const MAGIC_TOKEN_TTL_MS = 48 * 60 * 60 * 1000; // 48 hours
+
 export async function createAction(
+  retroId: string,
   input: CreateActionInput,
 ): Promise<Action> {
   const now = new Date().toISOString();
-  const magic = input.type === "mail" ? generateMagicToken() : null;
+  const magicToken = crypto.randomUUID();
+  const magicTokenExpiresAt = new Date(
+    Date.now() + MAGIC_TOKEN_TTL_MS,
+  ).toISOString();
+
+  const col = await actionsCollection();
 
   const doc: ActionDoc = {
     _id: crypto.randomUUID(),
-    retroId: input.retroId,
-    cardId: input.cardId,
-    title: input.title,
+    retroId,
+    groupId: input.groupId,
+    title: input.text,
     assigneeEmail: input.assigneeEmail,
-    assigneeName: input.assigneeName,
-    deadline: input.deadline,
+    assigneeName: input.assigneeName ?? null,
+    deadline: input.deadline ?? null,
     type: input.type,
     status: "open",
     mailSentAt: null,
-    magicToken: magic?.token ?? null,
-    magicTokenExpiresAt: magic?.expiresAt ?? null,
+    magicToken,
+    magicTokenExpiresAt,
     magicTokenUsed: false,
     failedReason: null,
     nextRetroCarryOver: false,
@@ -53,69 +87,38 @@ export async function createAction(
     updatedAt: now,
   };
 
-  const col = await actionsCollection();
   await col.insertOne(doc);
-  return doc as Action;
+  return docToAction(doc);
 }
 
-export async function getActionsByRetro(retroId: string): Promise<Action[]> {
+export async function listActionsByRetro(retroId: string): Promise<Action[]> {
   const col = await actionsCollection();
   const docs = await col
     .find({ retroId })
     .sort({ createdAt: -1 })
     .toArray();
-  return docs as Action[];
+  return docs.map(docToAction);
 }
 
-export async function getActionById(id: string): Promise<Action | null> {
+export async function getActionById(actionId: string): Promise<Action | null> {
   const col = await actionsCollection();
-  const doc = await col.findOne({ _id: id });
-  return doc ? (doc as Action) : null;
+  const doc = await col.findOne({ _id: actionId });
+  return doc ? docToAction(doc) : null;
 }
 
-export async function updateAction(
-  id: string,
-  patch: UpdateActionInput,
+export async function getActionByToken(
+  token: string,
 ): Promise<Action | null> {
   const col = await actionsCollection();
-  const updateFields: Record<string, unknown> = {
-    updatedAt: new Date().toISOString(),
-  };
-
-  if (patch.status !== undefined) updateFields.status = patch.status;
-  if (patch.deadline !== undefined) updateFields.deadline = patch.deadline;
-  if (patch.title !== undefined) updateFields.title = patch.title;
-  if (patch.failedReason !== undefined) updateFields.failedReason = patch.failedReason;
-
-  const result = await col.findOneAndUpdate(
-    { _id: id },
-    { $set: updateFields },
-    { returnDocument: "after" },
-  );
-
-  return result ? (result as Action) : null;
+  const doc = await col.findOne({ magicToken: token });
+  return doc ? docToAction(doc) : null;
 }
 
-export async function markMailSent(id: string): Promise<void> {
+export async function updateActionMailSent(actionId: string): Promise<void> {
   const col = await actionsCollection();
+  const now = new Date().toISOString();
   await col.updateOne(
-    { _id: id },
-    { $set: { mailSentAt: new Date().toISOString(), updatedAt: new Date().toISOString() } },
-  );
-}
-
-export async function markMailFailed(
-  id: string,
-  reason: string,
-): Promise<void> {
-  const col = await actionsCollection();
-  await col.updateOne(
-    { _id: id },
-    {
-      $set: {
-        failedReason: reason,
-        updatedAt: new Date().toISOString(),
-      },
-    },
+    { _id: actionId },
+    { $set: { mailSentAt: now, updatedAt: now } },
   );
 }

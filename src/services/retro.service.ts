@@ -3,53 +3,99 @@ import crypto from "node:crypto";
 import type { Collection } from "mongodb";
 
 import { getDb } from "@/lib/mongodb/client";
-import type { Retro, Card, RetroPhase, CardColumn } from "@/types/retro";
+import type { Retro, Card, RetroPhase, NoteGroup, Vote } from "@/types/retro";
+import { PHASE_ORDER } from "@/types/retro";
+import type {
+  CreateRetroInput,
+  AddCardInput,
+  UpdateGroupsInput,
+} from "@/lib/validations/retro.schema";
 
-type RetroDoc = Retro;
-type CardDoc = Card;
+// ── MongoDB document types ──────────────────────────────────────────
 
-let retroCol: Collection<RetroDoc> | null = null;
-let cardCol: Collection<CardDoc> | null = null;
+type RetroDoc = Omit<Retro, "id"> & { _id: string };
+type CardDoc = Omit<Card, "id"> & { _id: string };
+type VoteDoc = Omit<Vote, "id"> & { _id: string };
+
+// ── Cached collections ──────────────────────────────────────────────
+
+let cachedRetros: Collection<RetroDoc> | null = null;
+let cachedCards: Collection<CardDoc> | null = null;
+let cachedVotes: Collection<VoteDoc> | null = null;
 
 async function retrosCollection(): Promise<Collection<RetroDoc>> {
-  if (retroCol) return retroCol;
+  if (cachedRetros) return cachedRetros;
   const db = await getDb();
-  retroCol = db.collection<RetroDoc>("retros");
-  return retroCol;
+  cachedRetros = db.collection<RetroDoc>("retros");
+  return cachedRetros;
 }
 
 async function cardsCollection(): Promise<Collection<CardDoc>> {
-  if (cardCol) return cardCol;
+  if (cachedCards) return cachedCards;
   const db = await getDb();
-  cardCol = db.collection<CardDoc>("cards");
-  return cardCol;
+  cachedCards = db.collection<CardDoc>("cards");
+  return cachedCards;
 }
+
+async function votesCollection(): Promise<Collection<VoteDoc>> {
+  if (cachedVotes) return cachedVotes;
+  const db = await getDb();
+  cachedVotes = db.collection<VoteDoc>("votes");
+  return cachedVotes;
+}
+
+// ── Index setup ─────────────────────────────────────────────────────
 
 export async function ensureRetroIndexes(): Promise<void> {
   const retros = await retrosCollection();
   const cards = await cardsCollection();
-  await retros.createIndex({ createdBy: 1, createdAt: -1 });
-  await cards.createIndex({ retroId: 1, column: 1 });
-  await cards.createIndex({ retroId: 1, groupId: 1 });
+  const votes = await votesCollection();
+  await Promise.all([
+    retros.createIndex({ createdBy: 1, createdAt: -1 }),
+    cards.createIndex({ retroId: 1, createdAt: 1 }),
+    cards.createIndex({ retroId: 1, sessionId: 1 }),
+    cards.createIndex({ retroId: 1, groupId: 1 }),
+    votes.createIndex({ retroId: 1, sessionId: 1 }),
+    votes.createIndex({ retroId: 1, groupId: 1 }),
+    votes.createIndex(
+      { retroId: 1, groupId: 1, sessionId: 1 },
+      { unique: true },
+    ),
+  ]);
 }
 
-// ── Retro CRUD ────────────────────────────────────────────────────
+// ── Doc ↔ domain helpers ────────────────────────────────────────────
+
+function docToRetro(doc: RetroDoc): Retro {
+  const { _id, ...rest } = doc;
+  return { id: _id, ...rest };
+}
+
+function docToCard(doc: CardDoc): Card {
+  const { _id, ...rest } = doc;
+  return { id: _id, ...rest };
+}
+
+function docToVote(doc: VoteDoc): Vote {
+  const { _id, ...rest } = doc;
+  return { id: _id, ...rest };
+}
+
+// ── Retro CRUD ──────────────────────────────────────────────────────
 
 export async function createRetro(
   uid: string,
-  title: string,
-  timerMinutes: number,
-  votesPerUser: number,
+  input: CreateRetroInput,
 ): Promise<Retro> {
   const now = new Date().toISOString();
   const col = await retrosCollection();
 
   const doc: RetroDoc = {
     _id: crypto.randomUUID(),
-    title,
+    title: input.title,
     phase: "write",
-    votesPerUser,
-    timerMinutes,
+    votesPerUser: input.votesPerUser ?? 3,
+    timerMinutes: input.timerMinutes,
     timerEndsAt: null,
     createdBy: uid,
     teamId: null,
@@ -58,219 +104,222 @@ export async function createRetro(
   };
 
   await col.insertOne(doc);
-  return doc;
+  return docToRetro(doc);
+}
+
+export async function listRetrosByUser(uid: string): Promise<Retro[]> {
+  const col = await retrosCollection();
+  const docs = await col
+    .find({ createdBy: uid })
+    .sort({ createdAt: -1 })
+    .limit(50)
+    .toArray();
+  return docs.map(docToRetro);
 }
 
 export async function getRetroById(id: string): Promise<Retro | null> {
   const col = await retrosCollection();
-  return col.findOne({ _id: id });
+  const doc = await col.findOne({ _id: id });
+  return doc ? docToRetro(doc) : null;
 }
 
-export async function getRetrosByUser(uid: string): Promise<Retro[]> {
-  const col = await retrosCollection();
-  return col.find({ createdBy: uid }).sort({ createdAt: -1 }).limit(50).toArray();
+// ── Phase transitions ───────────────────────────────────────────────
+
+export class PhaseTransitionError extends Error {
+  readonly code = "PHASE_TRANSITION_ERROR";
+  constructor(message: string) {
+    super(message);
+  }
 }
 
-// ── Phase Management ──────────────────────────────────────────────
+export class ForbiddenError extends Error {
+  readonly code = "FORBIDDEN";
+  constructor(message = "You are not allowed to perform this action") {
+    super(message);
+  }
+}
 
-const VALID_TRANSITIONS: Record<RetroPhase, RetroPhase[]> = {
-  write: ["vote"],
-  vote: ["actions"],
-  actions: ["closed"],
-  closed: [],
-};
+function isValidTransition(current: RetroPhase, next: RetroPhase): boolean {
+  const currentIdx = PHASE_ORDER.indexOf(current);
+  const nextIdx = PHASE_ORDER.indexOf(next);
+  return nextIdx === currentIdx + 1;
+}
 
 export async function updatePhase(
   retroId: string,
   uid: string,
-  newPhase: RetroPhase,
-  startTimer = false,
+  nextPhase: RetroPhase,
 ): Promise<Retro> {
-  const col = await retrosCollection();
-  const retro = await col.findOne({ _id: retroId });
+  const retro = await getRetroById(retroId);
+  if (!retro) throw new PhaseTransitionError("Retro not found");
+  if (retro.createdBy !== uid) throw new ForbiddenError();
 
-  if (!retro) {
-    throw new Error("Retro not found");
-  }
-
-  if (retro.createdBy !== uid) {
-    throw new Error("Only the moderator can change phases");
-  }
-
-  const allowed = VALID_TRANSITIONS[retro.phase];
-  if (!allowed.includes(newPhase)) {
-    throw new Error(
-      `Invalid phase transition: ${retro.phase} → ${newPhase}`,
+  if (!isValidTransition(retro.phase, nextPhase)) {
+    throw new PhaseTransitionError(
+      `Cannot transition from "${retro.phase}" to "${nextPhase}"`,
     );
   }
 
-  const update: Record<string, unknown> = {
-    phase: newPhase,
-    updatedAt: new Date().toISOString(),
+  const now = new Date().toISOString();
+  const col = await retrosCollection();
+
+  const updateFields: Record<string, unknown> = {
+    phase: nextPhase,
+    updatedAt: now,
   };
 
-  if (startTimer && newPhase === "write") {
-    const endsAt = new Date(Date.now() + retro.timerMinutes * 60_000);
-    update.timerEndsAt = endsAt.toISOString();
-  }
-
-  if (newPhase === "vote") {
-    update.timerEndsAt = null;
+  if (nextPhase === "vote") {
+    updateFields.timerEndsAt = null;
   }
 
   const result = await col.findOneAndUpdate(
     { _id: retroId },
-    { $set: update },
+    { $set: updateFields },
     { returnDocument: "after" },
   );
 
-  if (!result) {
-    throw new Error("Failed to update retro phase");
-  }
-
-  return result;
+  if (!result) throw new PhaseTransitionError("Retro not found");
+  return docToRetro(result);
 }
 
 export async function startTimer(
   retroId: string,
   uid: string,
 ): Promise<Retro> {
+  const retro = await getRetroById(retroId);
+  if (!retro) throw new PhaseTransitionError("Retro not found");
+  if (retro.createdBy !== uid) throw new ForbiddenError();
+  if (retro.phase !== "write") {
+    throw new PhaseTransitionError("Timer can only start in write phase");
+  }
+
+  const now = new Date();
+  const timerEndsAt = new Date(
+    now.getTime() + retro.timerMinutes * 60_000,
+  ).toISOString();
+
   const col = await retrosCollection();
-  const retro = await col.findOne({ _id: retroId });
-
-  if (!retro) throw new Error("Retro not found");
-  if (retro.createdBy !== uid) throw new Error("Only the moderator can start the timer");
-  if (retro.phase !== "write") throw new Error("Timer can only start in write phase");
-
-  const endsAt = new Date(Date.now() + retro.timerMinutes * 60_000);
   const result = await col.findOneAndUpdate(
     { _id: retroId },
-    { $set: { timerEndsAt: endsAt.toISOString(), updatedAt: new Date().toISOString() } },
+    { $set: { timerEndsAt, updatedAt: now.toISOString() } },
     { returnDocument: "after" },
   );
 
-  if (!result) throw new Error("Failed to start timer");
-  return result;
+  if (!result) throw new PhaseTransitionError("Retro not found");
+  return docToRetro(result);
 }
 
-// ── Card CRUD ─────────────────────────────────────────────────────
+/**
+ * Server-side check: if timer has expired, auto-transition to vote.
+ * Called on GET /api/retros/[id] to ensure clients see the correct phase.
+ */
+export async function checkTimerExpiry(retroId: string): Promise<Retro | null> {
+  const retro = await getRetroById(retroId);
+  if (!retro) return null;
+
+  if (
+    retro.phase === "write" &&
+    retro.timerEndsAt &&
+    new Date(retro.timerEndsAt) <= new Date()
+  ) {
+    const col = await retrosCollection();
+    const now = new Date().toISOString();
+    const result = await col.findOneAndUpdate(
+      { _id: retroId, phase: "write" },
+      { $set: { phase: "vote", timerEndsAt: null, updatedAt: now } },
+      { returnDocument: "after" },
+    );
+    return result ? docToRetro(result) : retro;
+  }
+
+  return retro;
+}
+
+// ── Card CRUD ───────────────────────────────────────────────────────
+
+export class CardWriteError extends Error {
+  readonly code = "CARD_WRITE_ERROR";
+  constructor(message: string) {
+    super(message);
+  }
+}
 
 export async function addCard(
   retroId: string,
-  column: CardColumn,
-  content: string,
-  sessionId: string,
+  input: AddCardInput,
 ): Promise<Card> {
   const retro = await getRetroById(retroId);
-  if (!retro) throw new Error("Retro not found");
-  if (retro.phase !== "write") throw new Error("Cards can only be added during write phase");
+  if (!retro) throw new CardWriteError("Retro not found");
+  if (retro.phase !== "write") {
+    throw new CardWriteError("Cards can only be added during write phase");
+  }
 
   const col = await cardsCollection();
-  const now = new Date().toISOString();
-
   const doc: CardDoc = {
     _id: crypto.randomUUID(),
     retroId,
-    column,
-    content,
-    sessionId,
-    votes: 0,
-    votedBy: [],
+    column: input.column,
+    content: input.content,
+    sessionId: input.sessionId,
     groupId: null,
     groupTitle: null,
-    createdAt: now,
+    createdAt: new Date().toISOString(),
   };
 
   await col.insertOne(doc);
-  return doc;
+  return docToCard(doc);
 }
 
-export async function getCards(
+export async function listCards(
   retroId: string,
-  phase: RetroPhase,
   sessionId?: string,
 ): Promise<Card[]> {
-  const col = await cardsCollection();
-
-  if (phase === "write" && sessionId) {
-    return col.find({ retroId, sessionId }).toArray();
-  }
-
-  return col.find({ retroId }).sort({ votes: -1 }).toArray();
-}
-
-// ── Voting ────────────────────────────────────────────────────────
-
-export async function toggleVote(
-  retroId: string,
-  cardId: string,
-  sessionId: string,
-): Promise<Card> {
   const retro = await getRetroById(retroId);
-  if (!retro) throw new Error("Retro not found");
-  if (retro.phase !== "vote") throw new Error("Voting is only allowed during vote phase");
+  if (!retro) return [];
 
   const col = await cardsCollection();
-  const card = await col.findOne({ _id: cardId, retroId });
-  if (!card) throw new Error("Card not found");
 
-  const hasVoted = card.votedBy.includes(sessionId);
-
-  if (hasVoted) {
-    const result = await col.findOneAndUpdate(
-      { _id: cardId },
-      {
-        $pull: { votedBy: sessionId },
-        $inc: { votes: -1 },
-      },
-      { returnDocument: "after" },
-    );
-    if (!result) throw new Error("Failed to remove vote");
-    return result;
+  if (retro.phase === "write" && sessionId) {
+    const docs = await col
+      .find({ retroId, sessionId })
+      .sort({ createdAt: 1 })
+      .toArray();
+    return docs.map(docToCard);
   }
 
-  const totalVotes = await col.countDocuments({
-    retroId,
-    votedBy: sessionId,
-  });
-
-  if (totalVotes >= retro.votesPerUser) {
-    throw new Error(`Maximum ${retro.votesPerUser} votes allowed`);
+  if (retro.phase === "write") {
+    return [];
   }
 
-  const result = await col.findOneAndUpdate(
-    { _id: cardId },
-    {
-      $addToSet: { votedBy: sessionId },
-      $inc: { votes: 1 },
-    },
-    { returnDocument: "after" },
-  );
-
-  if (!result) throw new Error("Failed to add vote");
-  return result;
+  const docs = await col
+    .find({ retroId })
+    .sort({ createdAt: 1 })
+    .toArray();
+  return docs.map(docToCard);
 }
 
-// ── AI Grouping Helpers ───────────────────────────────────────────
+// ── Group operations ─────────────────────────────────────────────────
 
-export async function getAllCards(retroId: string): Promise<Card[]> {
-  const col = await cardsCollection();
-  return col.find({ retroId }).toArray();
+export class VoteError extends Error {
+  readonly code = "VOTE_ERROR";
+  constructor(message: string) {
+    super(message);
+  }
 }
 
-export async function applyAiGroups(
+export async function saveGroups(
   retroId: string,
-  groups: Array<{ groupId: string; title: string; cardIds: string[] }>,
+  groups: Array<{ id: string; title: string; cardIds: string[] }>,
 ): Promise<void> {
   const col = await cardsCollection();
 
-  const ops = groups.flatMap((group) =>
-    group.cardIds.map((cardId) => ({
+  await col.updateMany({ retroId }, { $set: { groupId: null, groupTitle: null } });
+
+  const ops = groups.flatMap((g) =>
+    g.cardIds.map((cardId) => ({
       updateOne: {
         filter: { _id: cardId, retroId },
-        update: {
-          $set: { groupId: group.groupId, groupTitle: group.title },
-        },
+        update: { $set: { groupId: g.id, groupTitle: g.title } },
       },
     })),
   );
@@ -280,27 +329,126 @@ export async function applyAiGroups(
   }
 }
 
-export async function updateGroupTitle(
-  retroId: string,
-  groupId: string,
-  newTitle: string,
-): Promise<void> {
+export async function getGroups(retroId: string): Promise<NoteGroup[]> {
   const col = await cardsCollection();
-  await col.updateMany(
-    { retroId, groupId },
-    { $set: { groupTitle: newTitle } },
-  );
+  const votes = await votesCollection();
+
+  const cards = await col
+    .find({ retroId, groupId: { $ne: null } })
+    .toArray();
+
+  const groupMap = new Map<string, { title: string; cardIds: string[] }>();
+  for (const card of cards) {
+    if (!card.groupId || !card.groupTitle) continue;
+    const existing = groupMap.get(card.groupId);
+    if (existing) {
+      existing.cardIds.push(card._id);
+    } else {
+      groupMap.set(card.groupId, { title: card.groupTitle, cardIds: [card._id] });
+    }
+  }
+
+  const voteCounts = await votes
+    .aggregate<{ _id: string; count: number }>([
+      { $match: { retroId } },
+      { $group: { _id: "$groupId", count: { $sum: 1 } } },
+    ])
+    .toArray();
+
+  const voteMap = new Map(voteCounts.map((v) => [v._id, v.count]));
+
+  const groups: NoteGroup[] = [];
+  for (const [id, { title, cardIds }] of groupMap) {
+    groups.push({
+      id,
+      retroId,
+      title,
+      cardIds,
+      voteCount: voteMap.get(id) ?? 0,
+    });
+  }
+
+  groups.sort((a, b) => b.voteCount - a.voteCount);
+  return groups;
 }
 
-export async function moveCardToGroup(
+export async function updateGroups(
   retroId: string,
-  cardId: string,
-  targetGroupId: string,
-  targetGroupTitle: string,
-): Promise<void> {
-  const col = await cardsCollection();
-  await col.updateOne(
-    { _id: cardId, retroId },
-    { $set: { groupId: targetGroupId, groupTitle: targetGroupTitle } },
+  uid: string,
+  input: UpdateGroupsInput,
+): Promise<NoteGroup[]> {
+  const retro = await getRetroById(retroId);
+  if (!retro) throw new ForbiddenError("Retro not found");
+  if (retro.createdBy !== uid) throw new ForbiddenError();
+
+  await saveGroups(
+    retroId,
+    input.groups.map((g) => ({ id: g.id, title: g.title, cardIds: g.cardIds })),
   );
+
+  return getGroups(retroId);
+}
+
+// ── Voting ───────────────────────────────────────────────────────────
+
+export async function castVote(
+  retroId: string,
+  groupId: string,
+  sessionId: string,
+): Promise<Vote> {
+  const retro = await getRetroById(retroId);
+  if (!retro) throw new VoteError("Retro not found");
+
+  if (retro.phase !== "vote") {
+    throw new VoteError("Voting is only allowed during the vote phase");
+  }
+
+  const votes = await votesCollection();
+
+  const alreadyVoted = await votes.findOne({ retroId, groupId, sessionId });
+  if (alreadyVoted) {
+    throw new VoteError("You have already voted for this group");
+  }
+
+  const existingCount = await votes.countDocuments({ retroId, sessionId });
+
+  if (existingCount >= retro.votesPerUser) {
+    throw new VoteError(
+      `Maximum ${retro.votesPerUser} votes per user exceeded`,
+    );
+  }
+
+  const col = await cardsCollection();
+  const groupExists = await col.findOne({ retroId, groupId });
+  if (!groupExists) {
+    throw new VoteError("Group does not exist");
+  }
+
+  const doc: VoteDoc = {
+    _id: crypto.randomUUID(),
+    retroId,
+    groupId,
+    sessionId,
+    createdAt: new Date().toISOString(),
+  };
+
+  await votes.insertOne(doc);
+
+  return docToVote(doc);
+}
+
+export async function getVotesBySession(
+  retroId: string,
+  sessionId: string,
+): Promise<{ votesUsed: number; votesRemaining: number }> {
+  const retro = await getRetroById(retroId);
+  if (!retro) throw new VoteError("Retro not found");
+
+  const votes = await votesCollection();
+  const count = await votes.countDocuments({ retroId, sessionId });
+
+  return {
+    votesUsed: count,
+    votesRemaining: Math.max(0, retro.votesPerUser - count),
+  };
 }

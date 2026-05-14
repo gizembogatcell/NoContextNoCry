@@ -2,7 +2,7 @@ import type { NextRequest } from "next/server";
 
 import { requireUser, UnauthorizedError } from "@/lib/api/auth";
 import { ok, fail, failFromUnknown } from "@/lib/api/response";
-import { getRetroById } from "@/services/retro.service";
+import { checkTimerExpiry } from "@/services/retro.service";
 
 export async function GET(
   request: NextRequest,
@@ -11,7 +11,7 @@ export async function GET(
   try {
     await requireUser(request);
     const { id } = await params;
-    const retro = await getRetroById(id);
+    const retro = await checkTimerExpiry(id);
 
     if (!retro) {
       return fail(

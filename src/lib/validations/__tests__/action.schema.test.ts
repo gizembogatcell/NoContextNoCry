@@ -1,39 +1,40 @@
 import { describe, expect, it } from "vitest";
-
-import {
-  createActionSchema,
-  updateActionSchema,
-  suggestActionsSchema,
-} from "@/lib/validations/action.schema";
+import { createActionSchema } from "@/lib/validations/action.schema";
 
 describe("createActionSchema", () => {
   const validInput = {
-    retroId: "retro-1",
-    title: "CI/CD pipeline'ını iyileştir",
-    assigneeEmail: "dev@example.com",
+    groupId: "group-1",
+    text: "Deploy monitoring dashboard",
+    assigneeEmail: "dev@team.com",
     type: "mail" as const,
   };
 
-  it("should accept valid minimal input", () => {
+  it("should accept valid input with required fields only", () => {
     const result = createActionSchema.safeParse(validInput);
     expect(result.success).toBe(true);
   });
 
-  it("should accept full input with all optional fields", () => {
+  it("should accept valid input with all optional fields", () => {
     const result = createActionSchema.safeParse({
       ...validInput,
-      cardId: "card-1",
-      assigneeName: "Ahmet",
-      deadline: "2026-06-01",
+      assigneeName: "Ali",
+      deadline: "2026-06-01T00:00:00.000Z",
     });
     expect(result.success).toBe(true);
   });
 
-  it("should reject missing title", () => {
+  it("should reject empty groupId", () => {
     const result = createActionSchema.safeParse({
-      retroId: "retro-1",
-      assigneeEmail: "dev@example.com",
-      type: "mail",
+      ...validInput,
+      groupId: "",
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("should reject empty text", () => {
+    const result = createActionSchema.safeParse({
+      ...validInput,
+      text: "",
     });
     expect(result.success).toBe(false);
   });
@@ -54,89 +55,35 @@ describe("createActionSchema", () => {
     expect(result.success).toBe(false);
   });
 
-  it("should default cardId to null", () => {
-    const result = createActionSchema.safeParse(validInput);
-    expect(result.success).toBe(true);
-    if (result.success) {
-      expect(result.data.cardId).toBeNull();
-    }
-  });
-
-  it("should reject empty retroId", () => {
+  it("should accept type jira", () => {
     const result = createActionSchema.safeParse({
       ...validInput,
-      retroId: "",
-    });
-    expect(result.success).toBe(false);
-  });
-});
-
-describe("updateActionSchema", () => {
-  it("should accept valid status update", () => {
-    const result = updateActionSchema.safeParse({ status: "done" });
-    expect(result.success).toBe(true);
-  });
-
-  it("should accept valid deadline update", () => {
-    const result = updateActionSchema.safeParse({
-      deadline: "2026-06-15",
+      type: "jira",
     });
     expect(result.success).toBe(true);
   });
 
-  it("should accept empty object (partial update)", () => {
-    const result = updateActionSchema.safeParse({});
-    expect(result.success).toBe(true);
-  });
-
-  it("should reject invalid status", () => {
-    const result = updateActionSchema.safeParse({ status: "unknown" });
+  it("should reject invalid deadline format", () => {
+    const result = createActionSchema.safeParse({
+      ...validInput,
+      deadline: "not-a-date",
+    });
     expect(result.success).toBe(false);
   });
 
   it("should accept null deadline", () => {
-    const result = updateActionSchema.safeParse({ deadline: null });
-    expect(result.success).toBe(true);
-  });
-
-  it("should accept title update", () => {
-    const result = updateActionSchema.safeParse({
-      title: "Güncellenmiş başlık",
+    const result = createActionSchema.safeParse({
+      ...validInput,
+      deadline: null,
     });
     expect(result.success).toBe(true);
   });
 
-  it("should reject empty title", () => {
-    const result = updateActionSchema.safeParse({ title: "" });
-    expect(result.success).toBe(false);
-  });
-});
-
-describe("suggestActionsSchema", () => {
-  it("should accept valid groups", () => {
-    const result = suggestActionsSchema.safeParse({
-      groups: [
-        { groupId: "g1", title: "CI sorunları", cardIds: ["c1", "c2"] },
-        { groupId: "g2", title: "İletişim", cardIds: ["c3"] },
-      ],
+  it("should accept null assigneeName", () => {
+    const result = createActionSchema.safeParse({
+      ...validInput,
+      assigneeName: null,
     });
     expect(result.success).toBe(true);
-  });
-
-  it("should accept empty groups array", () => {
-    const result = suggestActionsSchema.safeParse({ groups: [] });
-    expect(result.success).toBe(true);
-  });
-
-  it("should reject group without title", () => {
-    const result = suggestActionsSchema.safeParse({
-      groups: [{ groupId: "g1", cardIds: [] }],
-    });
-    expect(result.success).toBe(false);
-  });
-
-  it("should reject missing groups field", () => {
-    const result = suggestActionsSchema.safeParse({});
-    expect(result.success).toBe(false);
   });
 });

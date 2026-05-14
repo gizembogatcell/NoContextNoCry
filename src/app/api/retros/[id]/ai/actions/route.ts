@@ -1,25 +1,52 @@
 import type { NextRequest } from "next/server";
 
-import { requireUser } from "@/lib/api/auth";
-import { ok, failFromZod, failFromUnknown } from "@/lib/api/response";
-import { suggestActionsSchema } from "@/lib/validations/action.schema";
-import { suggestActions } from "@/services/retro-ai-actions.service";
+import { requireUser, UnauthorizedError } from "@/lib/api/auth";
+import { ok, fail, failFromUnknown } from "@/lib/api/response";
+import {
+  getRetroById,
+  ForbiddenError,
+} from "@/services/retro.service";
+import { generateActionSuggestions } from "@/services/retro-ai.service";
 
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    await requireUser(request);
-    const { id: retroId } = await params;
+    const decoded = await requireUser(request);
+    const { id } = await params;
 
-    const body: unknown = await request.json();
-    const parsed = suggestActionsSchema.safeParse(body);
-    if (!parsed.success) return failFromZod(parsed.error);
+    const retro = await getRetroById(id);
+    if (!retro) {
+      return fail(
+        { message: "Retro not found", code: "NOT_FOUND" },
+        { status: 404 },
+      );
+    }
 
-    const suggestions = await suggestActions(retroId, parsed.data.groups);
-    return ok(suggestions);
+    if (retro.createdBy !== decoded.uid) {
+      throw new ForbiddenError();
+    }
+
+    if (retro.phase !== "actions" && retro.phase !== "vote") {
+      return fail(
+        {
+          message: "AI suggestions are only available in vote or actions phase",
+          code: "INVALID_PHASE",
+        },
+        { status: 400 },
+      );
+    }
+
+    const suggestions = await generateActionSuggestions(id, retro.createdBy);
+    return ok({ suggestions });
   } catch (err) {
+    if (err instanceof UnauthorizedError) {
+      return fail({ message: err.message, code: err.code }, { status: 401 });
+    }
+    if (err instanceof ForbiddenError) {
+      return fail({ message: err.message, code: err.code }, { status: 403 });
+    }
     return failFromUnknown(err);
   }
 }

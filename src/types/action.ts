@@ -1,11 +1,10 @@
 export type ActionStatus = "open" | "done" | "in_progress" | "failed";
-
 export type ActionType = "mail" | "jira";
 
 export type Action = {
-  _id: string;
+  id: string;
   retroId: string;
-  cardId: string | null;
+  groupId: string | null;
   title: string;
   assigneeEmail: string;
   assigneeName: string | null;
@@ -28,6 +27,6 @@ export type Action = {
 export type ActionSuggestion = {
   groupId: string;
   groupTitle: string;
-  voteCount: number;
-  suggestedAction: string;
+  votes: number;
+  suggestedText: string;
 };
