@@ -170,14 +170,18 @@ export async function updateAction(
 
 export async function getActionsDueToday(): Promise<Action[]> {
   const col = await actionsCollection();
-  const todayStart = new Date();
-  todayStart.setHours(0, 0, 0, 0);
-  const todayEnd = new Date();
-  todayEnd.setHours(23, 59, 59, 999);
+  const now = new Date();
+  const todayStart = new Date(
+    Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 0, 0, 0, 0),
+  );
+  const todayEnd = new Date(
+    Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 23, 59, 59, 999),
+  );
 
   const docs = await col
     .find({
       status: "open",
+      mailSentAt: null,
       deadline: {
         $gte: todayStart.toISOString(),
         $lte: todayEnd.toISOString(),

@@ -9,7 +9,10 @@ import {
   getPreviousRetro,
   getRetroRecipients,
 } from "@/services/retro.service";
-import { getActionStatsByRetro } from "@/services/action.service";
+import {
+  getActionStatsByRetro,
+  markFailedAsCarryOver,
+} from "@/services/action.service";
 import { generatePreRetroSummary } from "@/services/mail-content";
 import { renderPreRetroSummaryMail } from "@/templates/pre-retro-summary.html";
 import { sendMail } from "@/services/mailer";
@@ -26,9 +29,7 @@ export async function POST(request: NextRequest) {
 
     const retro = await createRetro(decoded.uid, parsed.data);
 
-    if (parsed.data.sendSummaryMail) {
-      void sendPreRetroSummaryMails(decoded.uid, retro.id);
-    }
+    void markCarryOverAndSendMails(decoded.uid, retro.id, parsed.data.sendSummaryMail);
 
     return ok(retro, { status: 201 });
   } catch (err) {
@@ -39,13 +40,18 @@ export async function POST(request: NextRequest) {
   }
 }
 
-async function sendPreRetroSummaryMails(
+async function markCarryOverAndSendMails(
   uid: string,
   newRetroId: string,
+  shouldSendMail: boolean,
 ): Promise<void> {
   try {
     const previousRetro = await getPreviousRetro(uid, newRetroId);
     if (!previousRetro) return;
+
+    await markFailedAsCarryOver(previousRetro.id);
+
+    if (!shouldSendMail) return;
 
     const stats = await getActionStatsByRetro(previousRetro.id);
     const totalActions =
@@ -81,13 +87,13 @@ async function sendPreRetroSummaryMails(
       retroUrl,
     });
 
-    void Promise.all(
+    await Promise.all(
       recipients.map((to) =>
         sendMail({ to, subject: aiContent.subject, html }),
       ),
     );
   } catch (err) {
-    console.error("[retros/route] Failed to send pre-retro summary mails:", err);
+    console.error("[retros/route] Failed to process carry-over / summary mails:", err);
   }
 }
 

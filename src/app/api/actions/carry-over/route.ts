@@ -17,7 +17,6 @@ export async function GET(request: NextRequest) {
       return ok({ openCount: 0, failedCount: 0, actions: [] });
     }
 
-    await markFailedAsCarryOver(latestRetro.id);
     const actions = await getCarryOverActions(latestRetro.id);
 
     let openCount = 0;
@@ -28,6 +27,25 @@ export async function GET(request: NextRequest) {
     }
 
     return ok({ openCount, failedCount, actions });
+  } catch (err) {
+    if (err instanceof UnauthorizedError) {
+      return fail({ message: err.message, code: err.code }, { status: 401 });
+    }
+    return failFromUnknown(err);
+  }
+}
+
+export async function POST(request: NextRequest) {
+  try {
+    const decoded = await requireUser(request);
+    const latestRetro = await getLatestRetroByUser(decoded.uid);
+
+    if (!latestRetro) {
+      return ok({ marked: 0 });
+    }
+
+    const marked = await markFailedAsCarryOver(latestRetro.id);
+    return ok({ marked });
   } catch (err) {
     if (err instanceof UnauthorizedError) {
       return fail({ message: err.message, code: err.code }, { status: 401 });

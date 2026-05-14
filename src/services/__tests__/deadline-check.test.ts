@@ -71,7 +71,7 @@ describe("getActionsDueToday", () => {
     expect(actions).toHaveLength(0);
   });
 
-  it("should query with status open and deadline within today", async () => {
+  it("should query with status open, mailSentAt null, and deadline within today", async () => {
     mockFind.mockReturnValue({ toArray: vi.fn().mockResolvedValue([]) });
 
     await getActionsDueToday();
@@ -79,6 +79,7 @@ describe("getActionsDueToday", () => {
     expect(mockFind).toHaveBeenCalledWith(
       expect.objectContaining({
         status: "open",
+        mailSentAt: null,
         deadline: expect.objectContaining({
           $gte: expect.any(String),
           $lte: expect.any(String),
