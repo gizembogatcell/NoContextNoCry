@@ -3,7 +3,7 @@
 import { createContext, useContext, useEffect, useState } from "react";
 
 
-const STORAGE_KEY = "retroflow-color-scheme";
+const STORAGE_KEY = "retromind-color-scheme";
 
 type ColorScheme = "light" | "dark";
 

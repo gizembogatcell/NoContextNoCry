@@ -1,5 +1,6 @@
 import type { NextRequest } from "next/server";
 
+import { getServerEnv } from "@/lib/env";
 import { requireUser, UnauthorizedError } from "@/lib/api/auth";
 import { ok, fail, failFromUnknown } from "@/lib/api/response";
 import { createActionSchema } from "@/lib/validations/action.schema";
@@ -40,7 +41,12 @@ export async function POST(
       );
     }
 
-    const json = await request.json().catch(() => ({}));
+    let json: unknown;
+    try {
+      json = await request.json();
+    } catch {
+      return fail({ message: "Invalid JSON body", code: "INVALID_JSON" }, { status: 400 });
+    }
     const parsed = createActionSchema.safeParse(json);
 
     if (!parsed.success) {
@@ -94,7 +100,7 @@ async function fireAndForgetMail(
       deadline: action.deadline,
     });
 
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+    const { NEXT_PUBLIC_APP_URL: appUrl } = getServerEnv();
     const html = renderActionAssignedMail({
       subject: content.subject,
       body: content.body,

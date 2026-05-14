@@ -12,7 +12,12 @@ export async function POST(
   try {
     await requireUser(request);
     const { id } = await params;
-    const json = await request.json().catch(() => ({}));
+    let json: unknown;
+    try {
+      json = await request.json();
+    } catch {
+      return fail({ message: "Invalid JSON body", code: "INVALID_JSON" }, { status: 400 });
+    }
     const parsed = castVoteSchema.safeParse(json);
 
     if (!parsed.success) {

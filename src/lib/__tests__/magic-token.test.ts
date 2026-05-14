@@ -12,11 +12,10 @@ describe("generateMagicToken", () => {
     expect(result.expiresAt).toBeDefined();
   });
 
-  it("should generate UUID format tokens", () => {
+  it("should generate 64-char hex tokens", () => {
     const { token } = generateMagicToken();
-    const uuidRegex =
-      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-    expect(token).toMatch(uuidRegex);
+    const hexRegex = /^[0-9a-f]{64}$/;
+    expect(token).toMatch(hexRegex);
   });
 
   it("should set expiry 48 hours in the future", () => {

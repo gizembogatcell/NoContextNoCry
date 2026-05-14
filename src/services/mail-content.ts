@@ -40,7 +40,7 @@ export async function generateMailContent(
 
   try {
     const raw = await callAiProxy([{ role: "user", content: prompt }]);
-    return parseAiResponse(raw);
+    return parseSubjectBodyResponse(raw, FALLBACK_SUBJECT, FALLBACK_BODY);
   } catch (err) {
     console.error("[mail-content] AI generation failed, using fallback:", err);
     return { subject: FALLBACK_SUBJECT, body: FALLBACK_BODY };
@@ -66,24 +66,6 @@ function buildPrompt(params: MailContentParams): string {
   return parts.join("\n");
 }
 
-function parseAiResponse(raw: string): MailContent {
-  try {
-    const cleaned = raw.replace(/```json\n?|\n?```/g, "").trim();
-    const parsed: unknown = JSON.parse(cleaned);
-
-    if (isSubjectBodyPair(parsed)) {
-      return {
-        subject: (parsed as MailContent).subject,
-        body: (parsed as MailContent).body,
-      };
-    }
-  } catch {
-    console.error("[mail-content] Failed to parse AI response as JSON:", raw.slice(0, 200));
-  }
-
-  return { subject: FALLBACK_SUBJECT, body: FALLBACK_BODY };
-}
-
 function isSubjectBodyPair(val: unknown): val is { subject: string; body: string } {
   return (
     typeof val === "object" &&
@@ -93,6 +75,23 @@ function isSubjectBodyPair(val: unknown): val is { subject: string; body: string
     typeof (val as Record<string, unknown>).subject === "string" &&
     typeof (val as Record<string, unknown>).body === "string"
   );
+}
+
+function parseSubjectBodyResponse(
+  raw: string,
+  fallbackSubject: string,
+  fallbackBody: string,
+): { subject: string; body: string } {
+  try {
+    const cleaned = raw.replace(/```json\n?|\n?```/g, "").trim();
+    const parsed: unknown = JSON.parse(cleaned);
+    if (isSubjectBodyPair(parsed)) {
+      return { subject: parsed.subject, body: parsed.body };
+    }
+  } catch {
+    console.error("[mail-content] Failed to parse AI response:", raw.slice(0, 200));
+  }
+  return { subject: fallbackSubject, body: fallbackBody };
 }
 
 // ── Pre-retro summary mail content ──────────────────────────────────
@@ -109,7 +108,7 @@ export async function generatePreRetroSummary(
 
   try {
     const raw = await callAiProxy([{ role: "user", content: prompt }]);
-    return parsePreRetroResponse(raw);
+    return parseSubjectBodyResponse(raw, PRE_RETRO_FALLBACK_SUBJECT, PRE_RETRO_FALLBACK_BODY);
   } catch (err) {
     console.error("[mail-content] Pre-retro AI generation failed, using fallback:", err);
     return { subject: PRE_RETRO_FALLBACK_SUBJECT, body: PRE_RETRO_FALLBACK_BODY };
@@ -138,20 +137,3 @@ function buildPreRetroPrompt(params: PreRetroSummaryParams): string {
   return parts.join("\n");
 }
 
-function parsePreRetroResponse(raw: string): PreRetroSummaryContent {
-  try {
-    const cleaned = raw.replace(/```json\n?|\n?```/g, "").trim();
-    const parsed: unknown = JSON.parse(cleaned);
-
-    if (isSubjectBodyPair(parsed)) {
-      return {
-        subject: (parsed as PreRetroSummaryContent).subject,
-        body: (parsed as PreRetroSummaryContent).body,
-      };
-    }
-  } catch {
-    console.error("[mail-content] Failed to parse pre-retro AI response:", raw.slice(0, 200));
-  }
-
-  return { subject: PRE_RETRO_FALLBACK_SUBJECT, body: PRE_RETRO_FALLBACK_BODY };
-}

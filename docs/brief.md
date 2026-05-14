@@ -1,4 +1,4 @@
-# Project Brief: RetroFlow
+# Project Brief: RetroMind
 
 > Hackathon: Turkcell AI Hackathon — 14 Mayıs 2026
 > Team: No Context No Cry (Gizem, Reha, Kübra, Naz)
@@ -14,7 +14,7 @@ Yazılım ekipleri retrospektif toplantılarını Miro, Google Docs veya fizikse
 
 ## Proposed Solution
 
-RetroFlow; retro toplantısını yönetmek, aksiyonları otomatik oluşturmak ve sprint boyunca takip etmek için tasarlanmış AI destekli entegre bir platformdur. Ekip üyeleri anonim olarak sticky not yazar, timer dolunca notlar ortaya çıkar, AI benzer olanları kümeler. Moderatör her küme için AI'ın önerdiği aksiyon taslağını düzenler ve onaylar. Her aksiyon Mail veya Jira kanalına yönlendirilerek atanır. Deadline gelince kişi uygulamaya girmeden maildeki butonla durumu günceller. Bir sonraki retro açılırken geçen dönemin özeti otomatik ekrana gelir — hiçbir aksiyon unutulmaz.
+RetroMind; retro toplantısını yönetmek, aksiyonları otomatik oluşturmak ve sprint boyunca takip etmek için tasarlanmış AI destekli entegre bir platformdur. Ekip üyeleri anonim olarak sticky not yazar, timer dolunca notlar ortaya çıkar, AI benzer olanları kümeler. Moderatör her küme için AI'ın önerdiği aksiyon taslağını düzenler ve onaylar. Her aksiyon Mail veya Jira kanalına yönlendirilerek atanır. Deadline gelince kişi uygulamaya girmeden maildeki butonla durumu günceller. Bir sonraki retro açılırken geçen dönemin özeti otomatik ekrana gelir — hiçbir aksiyon unutulmaz.
 
 ---
 

@@ -96,7 +96,7 @@ export async function POST(
 
       case "in-progress":
         updated = await updateActionByMagicToken(token, {
-          status: "open",
+          status: "in_progress",
           magicTokenUsed: true,
           deadline: deadline ?? null,
         });
